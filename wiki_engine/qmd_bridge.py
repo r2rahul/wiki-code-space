@@ -14,6 +14,13 @@ from wiki_engine.graph_bridge import is_excluded_path
 LOGGER = logging.getLogger(__name__)
 
 
+def _qmd_collection_already_exists(process: subprocess.CompletedProcess[str]) -> bool:
+    """Return True when qmd reports an existing collection as a command failure."""
+
+    combined_output = f"{process.stderr}\n{process.stdout}".casefold()
+    return "already exists" in combined_output and "collection" in combined_output
+
+
 def assert_non_stage_path(file_path: Path, exclude_paths: Iterable[str]) -> None:
     """Raise when a caller attempts to index a path from excluded stage folders."""
 
@@ -37,6 +44,33 @@ def build_qmd_query_command(
         "--json",
         "-n",
         str(result_count),
+    ]
+
+
+def build_qmd_collection_add_command(
+    wiki_root: Path,
+    qmd_collection: str,
+) -> list[str]:
+    """Build qmd collection registration command for a wiki folder."""
+
+    return [
+        "qmd",
+        "collection",
+        "add",
+        str(wiki_root),
+        "--name",
+        qmd_collection,
+    ]
+
+
+def build_qmd_embed_command(qmd_collection: str) -> list[str]:
+    """Build qmd embedding refresh command for a registered collection."""
+
+    return [
+        "qmd",
+        "embed",
+        "-c",
+        qmd_collection,
     ]
 
 
@@ -66,34 +100,72 @@ def refresh_qmd_index(
             "collection": qmd_collection,
         }
 
-    command = [
-        qmd_bin,
-        "index",
-        str(wiki_root),
-        "-c",
-        qmd_collection,
-    ]
-    process = subprocess.run(command, check=False, capture_output=True, text=True)
-    if process.returncode != 0:
+    collection_command = build_qmd_collection_add_command(
+        wiki_root=wiki_root,
+        qmd_collection=qmd_collection,
+    )
+    collection_command[0] = qmd_bin
+    collection_process = subprocess.run(
+        collection_command,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    collection_already_exists = _qmd_collection_already_exists(collection_process)
+    if collection_process.returncode != 0 and not collection_already_exists:
         LOGGER.warning(
-            "qmd index failed; using markdown-based wiki search fallback: %s",
-            process.stderr.strip() or process.stdout.strip(),
+            "qmd collection add failed; using markdown-based wiki search fallback: %s",
+            collection_process.stderr.strip() or collection_process.stdout.strip(),
         )
         return {
             "status": "fallback",
-            "reason": "qmd index command unavailable or failed",
+            "reason": "qmd collection add command unavailable or failed",
             "collection": qmd_collection,
-            "return_code": process.returncode,
-            "stdout": process.stdout.strip(),
-            "stderr": process.stderr.strip(),
+            "return_code": collection_process.returncode,
+            "stdout": collection_process.stdout.strip(),
+            "stderr": collection_process.stderr.strip(),
+        }
+
+    embed_command = build_qmd_embed_command(qmd_collection=qmd_collection)
+    embed_command[0] = qmd_bin
+    embed_process = subprocess.run(
+        embed_command,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if embed_process.returncode != 0:
+        LOGGER.warning(
+            "qmd embed failed; continuing with qmd keyword search fallback: %s",
+            embed_process.stderr.strip() or embed_process.stdout.strip(),
+        )
+        return {
+            "status": "ok",
+            "collection": qmd_collection,
+            "collection_status": (
+                "exists" if collection_already_exists else "registered"
+            ),
+            "return_code": collection_process.returncode,
+            "stdout": collection_process.stdout.strip(),
+            "stderr": collection_process.stderr.strip(),
+            "embed_status": "fallback",
+            "embed_reason": "qmd embed command unavailable or failed",
+            "embed_return_code": embed_process.returncode,
+            "embed_stdout": embed_process.stdout.strip(),
+            "embed_stderr": embed_process.stderr.strip(),
         }
 
     return {
         "status": "ok",
         "collection": qmd_collection,
-        "return_code": process.returncode,
-        "stdout": process.stdout.strip(),
-        "stderr": process.stderr.strip(),
+        "collection_status": "exists" if collection_already_exists else "registered",
+        "return_code": collection_process.returncode,
+        "stdout": collection_process.stdout.strip(),
+        "stderr": collection_process.stderr.strip(),
+        "embed_status": "ok",
+        "embed_return_code": embed_process.returncode,
+        "embed_stdout": embed_process.stdout.strip(),
+        "embed_stderr": embed_process.stderr.strip(),
     }
 
 

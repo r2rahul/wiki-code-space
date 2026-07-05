@@ -20,13 +20,24 @@ When the user types `/wiki-bootstrap "<seed_text>"`, do this sequence:
    prompt guides. It does not create example notes in `architecture/`,
    `decisions/`, `qa/`, `sessions/`, or `glossary/`.
 
-4. Load the shared LLM maintenance guide if present:
+4. If `qmd` is installed, run the collection indexing commands:
+
+   ```bash
+   qmd collection add wiki_code_space --name wiki_code_space
+   qmd embed -c wiki_code_space
+   ```
+
+   Treat `qmd embed` as non-blocking. If it fails because no embedding model is
+   available, continue with standard qmd keyword search and markdown fallback
+   behavior.
+
+5. Load the shared LLM maintenance guide if present:
 
    ```text
    wiki_code_space/templates/llm_wiki_workflow_guide.md
    ```
 
-5. Add one baseline session note under:
+6. Add one baseline session note under:
 
    ```text
    wiki_code_space/sessions/YYYY-MM-DD-first-init-bootstrap.md
@@ -42,14 +53,14 @@ When the user types `/wiki-bootstrap "<seed_text>"`, do this sequence:
 
    Follow the metadata contract and session section order in the shared guide.
 
-6. Run once:
+7. Run once:
 
    ```bash
    python -m wiki_engine.cli update --project code_space
    ```
 
-   This refreshes the wiki scaffold, agent guide, bridge metadata, qmd index if
-   available, and log entries.
+   This refreshes the wiki scaffold, agent guide, bridge metadata, qmd
+   collection if available, best-effort embeddings, and log entries.
 
 ## Rules
 

@@ -26,8 +26,18 @@ instructions, and shared prompt guides. It does not create example notes under
 `sessions/`, `qa/`, `glossary/`, `architecture/`, or `decisions/`; those notes
 are created later only when source-grounded project context exists.
 
-qmd indexing is enabled by default. Use the explicit flags when you want to
-make the indexing choice visible in automation:
+qmd indexing is enabled by default. When qmd is installed, init/update register
+the wiki folder as a collection, then try embeddings as a non-blocking
+acceleration:
+
+```bash
+qmd collection add wiki_code_space --name wiki_code_space
+qmd embed -c wiki_code_space
+```
+
+If embeddings fail because no embedding model is available, qmd keyword search
+and the markdown fallback remain available. Use the explicit flags when you want
+to make the indexing choice visible in automation:
 
 ```bash
 python -m wiki_engine.cli init /path/to/existing-project --qmd-index
@@ -73,7 +83,8 @@ This command orchestrates:
 1. Wiki scaffold and note updates.
 2. Session note distillation into permanent notes.
 3. Graph-compatible bridge edge extraction from code references.
-4. qmd index refresh when qmd indexing is enabled.
+4. qmd collection refresh and best-effort embedding when qmd indexing is
+   enabled.
 5. Append-only `log.md` update entry.
 
 ## qmd indexing and search

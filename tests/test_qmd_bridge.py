@@ -8,6 +8,8 @@ import pytest
 
 from wiki_engine.qmd_bridge import (
     assert_non_stage_path,
+    build_qmd_collection_add_command,
+    build_qmd_embed_command,
     build_qmd_query_command,
     refresh_qmd_index,
     search_wiki,
@@ -33,6 +35,37 @@ def test_build_qmd_query_command_uses_required_flags() -> None:
         "--json",
         "-n",
         "10",
+    ]
+
+
+def test_build_qmd_collection_add_command_uses_wiki_folder_name() -> None:
+    """qmd collection add should register the wiki folder under its wiki name."""
+
+    command = build_qmd_collection_add_command(
+        wiki_root=Path("wiki_code_space"),
+        qmd_collection="wiki_code_space",
+    )
+
+    assert command == [
+        "qmd",
+        "collection",
+        "add",
+        "wiki_code_space",
+        "--name",
+        "wiki_code_space",
+    ]
+
+
+def test_build_qmd_embed_command_uses_collection_flag() -> None:
+    """qmd embed should run against the registered collection name."""
+
+    command = build_qmd_embed_command(qmd_collection="wiki_code_space")
+
+    assert command == [
+        "qmd",
+        "embed",
+        "-c",
+        "wiki_code_space",
     ]
 
 
@@ -111,7 +144,7 @@ def test_refresh_qmd_index_failure_falls_back_with_warning(
     caplog: pytest.LogCaptureFixture,
     tmp_path: Path,
 ) -> None:
-    """Unhealthy qmd should not block wiki updates."""
+    """Collection registration failure should fall back to markdown search."""
 
     monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: "/usr/bin/qmd")
     monkeypatch.setattr(
@@ -133,7 +166,108 @@ def test_refresh_qmd_index_failure_falls_back_with_warning(
     assert result["status"] == "fallback"
     assert result["return_code"] == 1
     assert result["stderr"] == "sqlite unavailable"
-    assert "qmd index failed" in caplog.text
+    assert "qmd collection add failed" in caplog.text
+
+
+def test_refresh_qmd_index_embed_failure_keeps_qmd_keyword_search(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+) -> None:
+    """Missing embed model should not invalidate collection keyword search."""
+
+    commands: list[list[str]] = []
+
+    def fake_run(
+        command: list[str],
+        check: bool,
+        capture_output: bool,
+        text: bool,
+    ) -> SimpleNamespace:
+        commands.append(command)
+        assert not check
+        assert capture_output
+        assert text
+        if command[1:3] == ["collection", "add"]:
+            return SimpleNamespace(returncode=0, stdout="added", stderr="")
+        return SimpleNamespace(returncode=1, stdout="", stderr="model missing")
+
+    monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: "/usr/bin/qmd")
+    monkeypatch.setattr("wiki_engine.qmd_bridge.subprocess.run", fake_run)
+
+    with caplog.at_level(logging.WARNING):
+        result = refresh_qmd_index(
+            wiki_root=tmp_path / "wiki_code_space",
+            qmd_collection="wiki_code_space",
+            exclude_paths=["stage/**"],
+        )
+
+    assert commands == [
+        [
+            "/usr/bin/qmd",
+            "collection",
+            "add",
+            str(tmp_path / "wiki_code_space"),
+            "--name",
+            "wiki_code_space",
+        ],
+        [
+            "/usr/bin/qmd",
+            "embed",
+            "-c",
+            "wiki_code_space",
+        ],
+    ]
+    assert result["status"] == "ok"
+    assert result["embed_status"] == "fallback"
+    assert result["embed_stderr"] == "model missing"
+    assert "continuing with qmd keyword search fallback" in caplog.text
+
+
+def test_refresh_qmd_index_existing_collection_still_embeds(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Existing qmd collections should be idempotent across update runs."""
+
+    commands: list[list[str]] = []
+
+    def fake_run(
+        command: list[str],
+        check: bool,
+        capture_output: bool,
+        text: bool,
+    ) -> SimpleNamespace:
+        commands.append(command)
+        assert not check
+        assert capture_output
+        assert text
+        if command[1:3] == ["collection", "add"]:
+            return SimpleNamespace(
+                returncode=1,
+                stdout="",
+                stderr="Collection 'wiki_code_space' already exists.",
+            )
+        return SimpleNamespace(returncode=0, stdout="embedded", stderr="")
+
+    monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: "/usr/bin/qmd")
+    monkeypatch.setattr("wiki_engine.qmd_bridge.subprocess.run", fake_run)
+
+    result = refresh_qmd_index(
+        wiki_root=tmp_path / "wiki_code_space",
+        qmd_collection="wiki_code_space",
+        exclude_paths=["stage/**"],
+    )
+
+    assert commands[1] == [
+        "/usr/bin/qmd",
+        "embed",
+        "-c",
+        "wiki_code_space",
+    ]
+    assert result["status"] == "ok"
+    assert result["collection_status"] == "exists"
+    assert result["embed_status"] == "ok"
 
 
 def test_search_wiki_markdown_excludes_stage(tmp_path: Path) -> None:
