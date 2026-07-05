@@ -25,6 +25,14 @@ def test_migrate_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
     assert (wiki_root / "index.md").exists()
     assert (wiki_root / "log.md").exists()
     assert (wiki_root / "stage" / ".noindex").exists()
+    assert (project_root / "AGENTS.md").exists()
+    assert (project_root / "CLAUDE.md").exists()
+    assert "wiki_legacy_analytics_project" in (
+        project_root / "AGENTS.md"
+    ).read_text(encoding="utf-8")
+    assert "wiki_legacy_analytics_project" in (
+        project_root / "CLAUDE.md"
+    ).read_text(encoding="utf-8")
 
     config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert config_payload["project_name"] == "legacy_analytics_project"

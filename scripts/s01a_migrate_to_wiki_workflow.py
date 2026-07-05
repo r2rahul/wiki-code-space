@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
         config_relpath=args.config_path,
     )
 
-    print("wiki migration completed")
+    print("wiki init completed")
     print(f"project_root={result.project_root}")
     print(f"project_name={result.project_name}")
     print(f"config_path={result.config_path}")

@@ -113,6 +113,7 @@ class WikiUpdater:
                 now=now,
             )
         )
+        changed_files.extend(self._ensure_agent_files(project_name=project_name))
 
         distilled_changed_files = self._distill_sessions_if_present(
             wiki_root=wiki_root,
@@ -284,6 +285,62 @@ class WikiUpdater:
                 continue
             was_updated = self._write_if_changed(file_path=file_path, content=content)
             if was_updated:
+                changed_files.append(file_path.relative_to(self.repo_root).as_posix())
+
+        return changed_files
+
+    def _ensure_agent_files(self, project_name: str) -> list[str]:
+        """Ensure root agent instruction files include wiki refresh template."""
+
+        changed_files: list[str] = []
+        wiki_refresh_block = self._render_template(
+            "wiki_auto_refresh.md.j2",
+            project_name=project_name,
+        ).strip()
+        marker = "## wiki auto refresh"
+
+        default_prefix = {
+            "AGENTS.md": "# Agents Prompt Template\n\n",
+            "CLAUDE.md": "# Project Instructions\n\n",
+        }
+
+        for filename in ("AGENTS.md", "CLAUDE.md"):
+            file_path = self.repo_root / filename
+            if file_path.exists():
+                existing_content = file_path.read_text(encoding="utf-8")
+                if marker in existing_content:
+                    replaced_content = (
+                        existing_content.replace("<project_name>", project_name)
+                        .replace("wiki_<project_name>", f"wiki_{project_name}")
+                        .replace("{{ project_name }}", project_name)
+                    )
+                    file_changed = self._write_if_changed(
+                        file_path=file_path,
+                        content=replaced_content,
+                    )
+                    if file_changed:
+                        changed_files.append(
+                            file_path.relative_to(self.repo_root).as_posix()
+                        )
+                    continue
+                separator = "\n\n" if existing_content.rstrip() else ""
+                merged_content = (
+                    f"{existing_content.rstrip()}{separator}{wiki_refresh_block}\n"
+                )
+                file_changed = self._write_if_changed(
+                    file_path=file_path,
+                    content=merged_content,
+                )
+            else:
+                base_content = (
+                    f"{default_prefix[filename]}{wiki_refresh_block}\n"
+                )
+                file_changed = self._write_if_changed(
+                    file_path=file_path,
+                    content=base_content,
+                )
+
+            if file_changed:
                 changed_files.append(file_path.relative_to(self.repo_root).as_posix())
 
         return changed_files
