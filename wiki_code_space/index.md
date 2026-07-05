@@ -1,7 +1,8 @@
 # wiki_code_space
 
 Project wiki for code_space that captures semantic intent, rationale,
-and business context while Graphifyy maintains structural topology.
+and business context. It can complement Graphifyy structural topology when a
+graph exists, but it is maintained independently.
 This index is optimized for coding-agent navigation and fast retrieval.
 
 ## Architecture
@@ -23,6 +24,10 @@ This index is optimized for coding-agent navigation and fast retrieval.
 ## Sessions
 - sessions/_template.md
     Template for session ingestion notes before distillation. Read before adding a new session note.
+
+## LLM Maintenance
+- ../.ai/wiki_code_space/llm_wiki_workflow_guide.md
+    Shared agent guide for deciding what semantic content belongs in each wiki folder.
 
 ## Glossary
 - glossary/terms.md

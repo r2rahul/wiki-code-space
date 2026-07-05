@@ -1,7 +1,9 @@
 # wiki-code-space
 
 Lightweight Python-first wiki workflow package for analytics projects where
-Graphifyy stores structural context and Wiki stores semantic context.
+the wiki stores semantic context. When a Graphifyy graph exists, the wiki
+bridge metadata can complement its structural context, but Graphifyy is not
+required to maintain the wiki.
 
 ## Core command
 
@@ -11,31 +13,42 @@ Run one coherent update call:
 python -m wiki_engine.cli update --project code_space
 ```
 
-## Migration for existing projects
+## Initialize existing projects
 
-Migrate any existing project folder into this wiki workflow:
+Initialize any existing project folder with this wiki workflow:
 
 ```bash
-python -m wiki_engine.cli migrate /path/to/existing-project
+python -m wiki_engine.cli init /path/to/existing-project
 ```
 
 Optional override for project name and config path:
 
 ```bash
-python -m wiki_engine.cli migrate /path/to/existing-project --project demand_forecasting --config config/wiki_engine.yaml
+python -m wiki_engine.cli init /path/to/existing-project --project demand_forecasting --config config/wiki_engine.yaml
 ```
 
 Script variant:
 
 ```bash
-python scripts/s01a_migrate_to_wiki_workflow.py /path/to/existing-project
+python scripts/s01a_initialize_wiki_workflow.py /path/to/existing-project
+```
+
+## Agent instruction installers
+
+Install wiki maintenance instructions for a project assistant:
+
+```bash
+python -m wiki_engine.cli codex --project code_space
+python -m wiki_engine.cli vscode --project code_space
+python -m wiki_engine.cli claude --project code_space
+python -m wiki_engine.cli gemini --project code_space
 ```
 
 This command orchestrates:
 
 1. Wiki scaffold and note updates.
 2. Session note distillation into permanent notes.
-3. Graph bridge edge extraction from code references.
+3. Graph-compatible bridge edge extraction from code references.
 4. qmd index refresh if qmd is installed.
 5. Append-only `log.md` update entry.
 

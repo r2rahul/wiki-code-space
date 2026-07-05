@@ -9,6 +9,7 @@ packages = ["wiki_engine"]
 include = [
     "wiki_engine/**/*.py",
     "wiki_engine/templates/*.j2",
+    "scripts/*.py",
     "config/wiki_engine.yaml",
     "README.md",
 ]
@@ -20,7 +21,6 @@ description = "Wiki workflow engine that bridges code structure and semantic rat
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "graphifyy>=0.1.0",
     "jinja2>=3.1.4",
     "pyyaml>=6.0.3",
 ]

@@ -6,7 +6,8 @@ import argparse
 from pathlib import Path
 import sys
 
-from wiki_engine.migration import migrate_project
+from wiki_engine.agent_install import install_agent_instructions
+from wiki_engine.migration import initialize_project
 from wiki_engine.updater import WikiUpdater
 
 
@@ -30,26 +31,52 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to wiki_engine YAML config",
     )
 
-    migrate_parser = subparsers.add_parser(
-        "migrate",
-        help="Bootstrap and migrate an existing project folder",
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize wiki workflow in an existing project folder",
     )
-    migrate_parser.add_argument(
+    init_parser.add_argument(
         "target_dir",
         help="Path to existing project directory",
     )
-    migrate_parser.add_argument(
+    init_parser.add_argument(
         "--project",
         dest="project_name",
         default=None,
         help="Optional project name override",
     )
-    migrate_parser.add_argument(
+    init_parser.add_argument(
         "--config",
         dest="config_path",
         default="config/wiki_engine.yaml",
         help="Relative config path in target project",
     )
+    migrate_parser = subparsers.add_parser("migrate", help=argparse.SUPPRESS)
+    migrate_parser.add_argument("target_dir")
+    migrate_parser.add_argument("--project", dest="project_name", default=None)
+    migrate_parser.add_argument(
+        "--config",
+        dest="config_path",
+        default="config/wiki_engine.yaml",
+    )
+
+    for agent_name in ("codex", "vscode", "claude", "gemini"):
+        agent_parser = subparsers.add_parser(
+            agent_name,
+            help=f"Install {agent_name} wiki maintenance instructions",
+        )
+        agent_parser.add_argument(
+            "--project",
+            dest="project_name",
+            default=None,
+            help="Override project_name from config/wiki_engine.yaml",
+        )
+        agent_parser.add_argument(
+            "--config",
+            dest="config_path",
+            default="config/wiki_engine.yaml",
+            help="Path to wiki_engine YAML config",
+        )
     return parser
 
 
@@ -79,13 +106,13 @@ def main(argv: list[str] | None = None) -> int:
             config_path=args.config_path,
         )
 
-    if args.command == "migrate":
-        result = migrate_project(
+    if args.command in {"init", "migrate"}:
+        result = initialize_project(
             target_dir=args.target_dir,
             project_name=args.project_name,
             config_relpath=args.config_path,
         )
-        print("wiki_engine migration completed")
+        print("wiki_engine init completed")
         print(f"project_root={result.project_root}")
         print(f"project_name={result.project_name}")
         print(f"config_path={result.config_path}")
@@ -98,6 +125,26 @@ def main(argv: list[str] | None = None) -> int:
             "qmd_status="
             f"{result.update_result.qmd_result.get('status', 'unknown')}"
         )
+        return 0
+
+    if args.command in {"codex", "vscode", "claude", "gemini"}:
+        repo_root = Path.cwd()
+        updater = WikiUpdater(
+            repo_root=repo_root,
+            config_path=repo_root / args.config_path,
+        )
+        project_name = args.project_name or updater.config.project_name
+        result = install_agent_instructions(
+            repo_root=repo_root,
+            project_name=project_name,
+            agent_name=args.command,
+            jinja_env=updater.jinja_env,
+        )
+        print("wiki_engine agent install completed")
+        print(f"agent={result.agent_name}")
+        print(f"instruction_path={result.instruction_path}")
+        print(f"skill_path={result.skill_path}")
+        print(f"changed_files={len(result.changed_files)}")
         return 0
 
     parser.print_help()

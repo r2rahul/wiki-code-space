@@ -1,4 +1,4 @@
-"""Graph bridge utilities for syncing wiki notes with code graph structure."""
+"""Bridge utilities for exposing wiki notes as graph-compatible metadata."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def update_graph_bridge(
     wiki_root: Path,
     exclude_paths: Iterable[str],
 ) -> dict[str, object]:
-    """Build community bridge metadata for Graphifyy update workflows."""
+    """Build graph-compatible community bridge metadata."""
 
     _ = project_name
     edges = collect_bridge_edges(wiki_root=wiki_root, exclude_paths=exclude_paths)

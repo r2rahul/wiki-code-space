@@ -19,6 +19,17 @@ def write_minimal_templates(repo_root: Path) -> None:
         "wiki_{{ project_name }}\n",
         encoding="utf-8",
     )
+    (template_dir / "agent_wiki_install.md.j2").write_text(
+        "{{ begin_marker }}\n"
+        "## wiki maintenance\n"
+        "wiki_{{ project_name }} {{ skill_path }}\n"
+        "{{ end_marker }}\n",
+        encoding="utf-8",
+    )
+    (template_dir / "llm_wiki_workflow_guide.md.j2").write_text(
+        "Guide for wiki_{{ project_name }}\n",
+        encoding="utf-8",
+    )
 
 
 def test_update_creates_required_wiki_files(tmp_path: Path) -> None:
@@ -57,15 +68,18 @@ def test_update_creates_required_wiki_files(tmp_path: Path) -> None:
     assert (wiki_root / "stage" / ".qmdexclude").exists()
     assert (repo_root / "AGENTS.md").exists()
     assert (repo_root / "CLAUDE.md").exists()
+    assert (
+        repo_root / ".ai" / "wiki_code_space" / "llm_wiki_workflow_guide.md"
+    ).exists()
     assert "wiki_code_space" in (repo_root / "AGENTS.md").read_text(encoding="utf-8")
     assert "wiki_code_space" in (repo_root / "CLAUDE.md").read_text(encoding="utf-8")
     assert any(path.endswith("log.md") for path in result.changed_files)
 
 
-def test_update_replaces_project_placeholders_in_existing_agent_files(
+def test_update_replaces_marked_blocks_in_existing_agent_files(
     tmp_path: Path,
 ) -> None:
-    """Updater should replace project placeholders in existing agent files."""
+    """Updater should replace generated agent blocks in existing agent files."""
 
     repo_root = tmp_path
     config_dir = repo_root / "config"
@@ -89,14 +103,13 @@ def test_update_replaces_project_placeholders_in_existing_agent_files(
 
     write_minimal_templates(repo_root=repo_root)
     (repo_root / "AGENTS.md").write_text(
-        "## wiki auto refresh\n"
-        "wiki_<project_name>\n"
-        "python -m wiki_engine.cli update --project <project_name>\n",
+        "<!-- wiki-engine:start -->\n"
+        "old generated content\n"
+        "<!-- wiki-engine:end -->\n",
         encoding="utf-8",
     )
     (repo_root / "CLAUDE.md").write_text(
-        "## wiki auto refresh\n"
-        "collection: {{ project_name }}\n",
+        "# Handwritten heading\n",
         encoding="utf-8",
     )
 
@@ -105,8 +118,7 @@ def test_update_replaces_project_placeholders_in_existing_agent_files(
 
     agents_text = (repo_root / "AGENTS.md").read_text(encoding="utf-8")
     claude_text = (repo_root / "CLAUDE.md").read_text(encoding="utf-8")
-    assert "<project_name>" not in agents_text
-    assert "wiki_<project_name>" not in agents_text
-    assert "{{ project_name }}" not in claude_text
+    assert "old generated content" not in agents_text
     assert "wiki_code_space" in agents_text
-    assert "code_space" in claude_text
+    assert "# Handwritten heading" in claude_text
+    assert "wiki_code_space" in claude_text

@@ -9,5 +9,5 @@ source: agent
 ---
 
 # Terms
-- Graphifyy: structural knowledge graph of code dependencies.
-- Wiki: semantic notes with rationale and business context.
+- Graphifyy: optional structural knowledge graph of code dependencies.
+- Wiki: lightweight semantic notes with rationale and business context.

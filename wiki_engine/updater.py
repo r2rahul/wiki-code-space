@@ -1,4 +1,4 @@
-"""Orchestrates coherent wiki, graph, and qmd update runs."""
+"""Orchestrates coherent wiki, semantic bridge, and qmd update runs."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from typing import Any
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 import yaml
 
+from wiki_engine.agent_install import install_agent_instructions
 from wiki_engine.graph_bridge import update_graph_bridge
 from wiki_engine.qmd_bridge import refresh_qmd_index
 from wiki_engine.session_distill import distill_session_note, discover_session_notes
@@ -99,7 +100,7 @@ class WikiUpdater:
         return normalized.lower()
 
     def update(self, project_override: str | None = None) -> UpdateResult:
-        """Execute one coherent Graphifyy+Wiki+qmd update workflow."""
+        """Execute one coherent Wiki+bridge+qmd update workflow."""
 
         now = datetime.now()
         project_name = project_override or self.config.project_name
@@ -272,8 +273,8 @@ class WikiUpdater:
                 source="agent",
                 body=(
                     "# Terms\n"
-                    "- Graphifyy: structural knowledge graph of code dependencies.\n"
-                    "- Wiki: semantic notes with rationale and business context.\n"
+                    "- Graphifyy: optional structural knowledge graph of code dependencies.\n"
+                    "- Wiki: lightweight semantic notes with rationale and business context.\n"
                 ),
             ),
             wiki_root / "stage" / ".noindex": "stage is excluded from indexing\n",
@@ -293,55 +294,14 @@ class WikiUpdater:
         """Ensure root agent instruction files include wiki refresh template."""
 
         changed_files: list[str] = []
-        wiki_refresh_block = self._render_template(
-            "wiki_auto_refresh.md.j2",
-            project_name=project_name,
-        ).strip()
-        marker = "## wiki auto refresh"
-
-        default_prefix = {
-            "AGENTS.md": "# Agents Prompt Template\n\n",
-            "CLAUDE.md": "# Project Instructions\n\n",
-        }
-
-        for filename in ("AGENTS.md", "CLAUDE.md"):
-            file_path = self.repo_root / filename
-            if file_path.exists():
-                existing_content = file_path.read_text(encoding="utf-8")
-                if marker in existing_content:
-                    replaced_content = (
-                        existing_content.replace("<project_name>", project_name)
-                        .replace("wiki_<project_name>", f"wiki_{project_name}")
-                        .replace("{{ project_name }}", project_name)
-                    )
-                    file_changed = self._write_if_changed(
-                        file_path=file_path,
-                        content=replaced_content,
-                    )
-                    if file_changed:
-                        changed_files.append(
-                            file_path.relative_to(self.repo_root).as_posix()
-                        )
-                    continue
-                separator = "\n\n" if existing_content.rstrip() else ""
-                merged_content = (
-                    f"{existing_content.rstrip()}{separator}{wiki_refresh_block}\n"
-                )
-                file_changed = self._write_if_changed(
-                    file_path=file_path,
-                    content=merged_content,
-                )
-            else:
-                base_content = (
-                    f"{default_prefix[filename]}{wiki_refresh_block}\n"
-                )
-                file_changed = self._write_if_changed(
-                    file_path=file_path,
-                    content=base_content,
-                )
-
-            if file_changed:
-                changed_files.append(file_path.relative_to(self.repo_root).as_posix())
+        for agent_name in ("codex", "claude"):
+            result = install_agent_instructions(
+                repo_root=self.repo_root,
+                project_name=project_name,
+                agent_name=agent_name,
+                jinja_env=self.jinja_env,
+            )
+            changed_files.extend(result.changed_files)
 
         return changed_files
 

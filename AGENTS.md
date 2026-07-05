@@ -77,3 +77,25 @@ Include:
 - wiki root: wiki_code_space
 - qmd collection: wiki_code_space
 - update command: python -m wiki_engine.cli update --project code_space
+
+<!-- wiki-engine:start -->
+## wiki maintenance
+
+This project maintains a lightweight semantic wiki under wiki_code_space/. The wiki records rationale, business context, decisions, QA constraints, and reusable session lessons that complement code documentation.
+
+When the user types /wiki-refresh, run:
+
+```bash
+python -m wiki_engine.cli update --project code_space
+```
+
+Rules:
+- Before broad codebase exploration, read wiki_code_space/index.md.
+- If qmd is installed, prefer qmd query "<question>" -c wiki_code_space --json -n 10 before reading multiple wiki pages.
+- Load the shared maintenance guide at .ai/wiki_code_space/llm_wiki_workflow_guide.md before editing wiki content.
+- Keep wiki notes semantic, brief, atomic, and business-relevant. Do not duplicate docstrings or implementation walkthroughs.
+- Never browse wiki_code_space/stage/ unless the user names an exact file path in the conversation.
+- After code, config, or test edits that affect behavior or documentation semantics, run python -m wiki_engine.cli update --project code_space once near completion.
+<!-- wiki-engine:end -->
+
+

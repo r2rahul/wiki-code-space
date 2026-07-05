@@ -1,4 +1,4 @@
-"""Migration helpers to bootstrap wiki workflow in existing projects."""
+"""Initialization helpers to bootstrap wiki workflow in existing projects."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from wiki_engine.updater import UpdateResult, WikiUpdater
 
 
 @dataclass(frozen=True)
-class MigrationResult:
-    """Result payload for project migration command."""
+class InitializationResult:
+    """Result payload for project initialization command."""
 
     project_root: Path
     config_path: Path
@@ -21,7 +21,7 @@ class MigrationResult:
 
 
 def build_default_config(project_name: str) -> dict[str, object]:
-    """Build default migration config using mandatory workflow keys."""
+    """Build default initialization config using mandatory workflow keys."""
 
     return {
         "project_name": project_name,
@@ -35,12 +35,12 @@ def build_default_config(project_name: str) -> dict[str, object]:
     }
 
 
-def ensure_migration_config(
+def ensure_initialization_config(
     project_root: Path,
     project_name: str,
     config_relpath: str,
 ) -> Path:
-    """Create migration config if missing and return absolute config path."""
+    """Create initialization config if missing and return absolute config path."""
 
     config_path = project_root / config_relpath
     config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,12 +55,12 @@ def ensure_migration_config(
     return config_path
 
 
-def migrate_project(
+def initialize_project(
     target_dir: str,
     project_name: str | None = None,
     config_relpath: str = "config/wiki_engine.yaml",
-) -> MigrationResult:
-    """Bootstrap and run wiki migration workflow in an existing project folder."""
+) -> InitializationResult:
+    """Bootstrap and run wiki workflow in an existing project folder."""
 
     project_root = Path(target_dir).expanduser().resolve()
     if not project_root.exists() or not project_root.is_dir():
@@ -68,7 +68,7 @@ def migrate_project(
 
     inferred_name = project_name or project_root.name
     normalized_name = WikiUpdater.normalize_project_name(inferred_name)
-    config_path = ensure_migration_config(
+    config_path = ensure_initialization_config(
         project_root=project_root,
         project_name=normalized_name,
         config_relpath=config_relpath,
@@ -77,9 +77,40 @@ def migrate_project(
     updater = WikiUpdater(repo_root=project_root, config_path=config_path)
     update_result = updater.update(project_override=normalized_name)
 
-    return MigrationResult(
+    return InitializationResult(
         project_root=project_root,
         config_path=config_path,
         project_name=normalized_name,
         update_result=update_result,
+    )
+
+
+MigrationResult = InitializationResult
+
+
+def ensure_migration_config(
+    project_root: Path,
+    project_name: str,
+    config_relpath: str,
+) -> Path:
+    """Backward-compatible alias for initialization config creation."""
+
+    return ensure_initialization_config(
+        project_root=project_root,
+        project_name=project_name,
+        config_relpath=config_relpath,
+    )
+
+
+def migrate_project(
+    target_dir: str,
+    project_name: str | None = None,
+    config_relpath: str = "config/wiki_engine.yaml",
+) -> InitializationResult:
+    """Backward-compatible alias for initialize_project."""
+
+    return initialize_project(
+        target_dir=target_dir,
+        project_name=project_name,
+        config_relpath=config_relpath,
     )

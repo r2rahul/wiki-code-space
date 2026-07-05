@@ -1,4 +1,4 @@
-.PHONY: install format test build update-wiki migrate-wiki
+.PHONY: install format test build update-wiki init-wiki
 
 install:
 	uv sync
@@ -16,5 +16,5 @@ build:
 update-wiki:
 	uv run python -m wiki_engine.cli update --project code_space
 
-migrate-wiki:
-	uv run python -m wiki_engine.cli migrate . --project code_space
+init-wiki:
+	uv run python -m wiki_engine.cli init . --project code_space

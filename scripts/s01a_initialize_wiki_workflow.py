@@ -1,19 +1,19 @@
-"""Script entrypoint to migrate existing projects to wiki_engine workflow."""
+"""Script entrypoint to initialize projects with wiki_engine workflow."""
 
 from __future__ import annotations
 
 import argparse
 import sys
 
-from wiki_engine.migration import migrate_project
+from wiki_engine.migration import initialize_project
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build parser for migration script."""
+    """Build parser for initialization script."""
 
     parser = argparse.ArgumentParser(
-        prog="s01a_migrate_to_wiki_workflow.py",
-        description="Migrate an existing project folder into wiki workflow",
+        prog="s01a_initialize_wiki_workflow.py",
+        description="Initialize an existing project folder with wiki workflow",
     )
     parser.add_argument("target_dir", help="Path to existing project folder")
     parser.add_argument(
@@ -32,12 +32,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run migration and print concise run summary."""
+    """Run initialization and print concise run summary."""
 
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    result = migrate_project(
+    result = initialize_project(
         target_dir=args.target_dir,
         project_name=args.project_name,
         config_relpath=args.config_path,
