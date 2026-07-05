@@ -12,6 +12,12 @@ Use this guide when maintaining the wiki. Capture semantic context that helps a 
 - Prefer qmd query "<question>" -c wiki_code_space --json -n 10 when qmd is installed.
 - Do not duplicate function docs, docstrings, stack traces, or long implementation listings.
 - Link to code by stable path and symbol when it clarifies business or architectural context, for example `src/models/forecasting.py -> run_forecast()`.
+- For Graphifyy-friendly communities, name the concrete file path, function
+  or class, config file/key, and business rationale in the same note when they
+  are related. Example:
+  `Target: src/models/forecasting.py -> run_forecast()`;
+  `Config Parameter: volatility_penalty inside config.yaml`;
+  `Business Context: higher volatility_penalty reduces false-positive alerts`.
 - Preserve existing front matter keys and naming conventions.
 - Never read, summarize, index, or update wiki_code_space/stage/ unless the user names an exact stage file path.
 

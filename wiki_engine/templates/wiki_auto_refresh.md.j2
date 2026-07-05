@@ -10,6 +10,7 @@ Rules:
 - Treat wiki refresh as incremental by default. Do not force broad re-reads of wiki_{{ project_name }}/ after every change; only load pages related to the current task.
 - Dirty files under wiki_{{ project_name }}/ after refresh are expected. Do not skip refresh because wiki files are dirty unless the task is specifically about diagnosing refresh correctness.
 - Use staged context loading to reduce tokens: (1) wiki_{{ project_name }}/index.md, (2) architecture/config_params.md for config changes, (3) qa/business.md and qa/technical.md for behavior changes, (4) decisions/adr-*.md only for architecture-impacting work.
+- When adding wiki knowledge that should help Graphifyy communities, include explicit code paths, symbols, config files/keys, and business rationale in the same note, for example `Target: src/models/forecasting.py -> run_forecast()` and `Config Parameter: volatility_penalty inside config.yaml`.
 - Never browse wiki_{{ project_name }}/stage/ unless the user provides an exact file path.
 - Prefer focused diffs and targeted file reads over full-file dumps or repo-wide scans.
 - After code, config, or test edits that affect behavior or documentation semantics, run python -m wiki_engine.cli update --project {{ project_name }} once near completion to refresh artifacts.
