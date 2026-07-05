@@ -92,23 +92,24 @@ python -m wiki_engine.cli search "why volatility_penalty changed" --project code
 
 ## Graphify integration
 
-The wiki stores semantic rationale, business context, decisions, QA constraints,
-and reusable session lessons. Graphify can use that wiki layer alongside its
-structural code graph so community detection can group not only files and code
-symbols, but also the semantic knowledge that explains why the system behaves
-the way it does.
+To help Graphifyy cluster business logic with code, write wiki entries with
+explicit code paths, function names, and config names. Graphifyy can use these
+lexical overlaps as bridge signals when building graph communities.
 
-Build or refresh the Graphify wiki view from the project root:
+Example wiki entry:
 
-```bash
-graphify . --wiki
+```markdown
+Target: src/models/forecasting.py -> run_forecast()
+Config Parameter: volatility_penalty inside config.yaml
+Business Context: Increasing volatility_penalty above 0.5 reduces false-positive
+alerts in the dashboard. We prioritize reducing false positives because the ops
+team experiences alert fatigue.
 ```
 
-Then keep the wiki bridge metadata and qmd index fresh with:
-
-```bash
-python -m wiki_engine.cli update --project code_space
-```
+Because `src/models/forecasting.py`, `run_forecast()`, and `config.yaml` are
+named directly, graph communities can connect the wiki rationale to the
+forecasting code. When an agent queries the graph about forecasting, it can
+retrieve both implementation context and business rationale.
 
 ## Build and test
 
