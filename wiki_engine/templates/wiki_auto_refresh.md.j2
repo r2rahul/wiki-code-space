@@ -6,7 +6,7 @@ When the user types /wiki-refresh, run python -m wiki_engine.cli update --projec
 
 Rules:
 - For codebase questions, use query-first retrieval. If qmd is available, run qmd query "<question>" -c wiki_{{ project_name }} --json -n 10 before reading multiple markdown files.
-- Load .ai/wiki_{{ project_name }}/llm_wiki_workflow_guide.md before editing wiki content.
+- Load wiki_{{ project_name }}/templates/llm_wiki_workflow_guide.md before editing wiki content.
 - Treat wiki refresh as incremental by default. Do not force broad re-reads of wiki_{{ project_name }}/ after every change; only load pages related to the current task.
 - Dirty files under wiki_{{ project_name }}/ after refresh are expected. Do not skip refresh because wiki files are dirty unless the task is specifically about diagnosing refresh correctness.
 - Use staged context loading to reduce tokens: (1) wiki_{{ project_name }}/index.md, (2) architecture/config_params.md for config changes, (3) qa/business.md and qa/technical.md for behavior changes, (4) decisions/adr-*.md only for architecture-impacting work.

@@ -8,8 +8,8 @@ from wiki_engine.agent_install import install_agent_instructions
 from wiki_engine.updater import WikiUpdater
 
 
-def test_install_vscode_agent_writes_instruction_and_skill(tmp_path: Path) -> None:
-    """Agent install should write a scoped prompt block and shared LLM guide."""
+def test_install_vscode_agent_writes_instruction_and_guides(tmp_path: Path) -> None:
+    """Agent install should write instruction plus shared prompt guides."""
 
     repo_root = tmp_path
     config_dir = repo_root / "config"
@@ -40,13 +40,31 @@ def test_install_vscode_agent_writes_instruction_and_skill(tmp_path: Path) -> No
     )
 
     instruction_path = repo_root / ".github" / "copilot-instructions.md"
-    skill_path = repo_root / ".ai" / "wiki_code_space" / "llm_wiki_workflow_guide.md"
+    guide_path = (
+        repo_root / "wiki_code_space" / "templates" / "llm_wiki_workflow_guide.md"
+    )
+    bootstrap_path = (
+        repo_root / "wiki_code_space" / "templates" / "wiki_first_init_bootstrap.md"
+    )
     assert instruction_path.exists()
-    assert skill_path.exists()
+    assert guide_path.exists()
+    assert bootstrap_path.exists()
     assert "python -m wiki_engine.cli update --project code_space" in (
         instruction_path.read_text(encoding="utf-8")
     )
+    assert "wiki_first_init_bootstrap.md" in instruction_path.read_text(
+        encoding="utf-8"
+    )
     assert "Never read, summarize, index, or update wiki_code_space/stage/" in (
-        skill_path.read_text(encoding="utf-8")
+        guide_path.read_text(encoding="utf-8")
+    )
+    assert "python -m wiki_engine.cli init <target_dir> --project code_space" in (
+        bootstrap_path.read_text(encoding="utf-8")
+    )
+    assert result.guide_path.as_posix() == (
+        "wiki_code_space/templates/llm_wiki_workflow_guide.md"
+    )
+    assert result.bootstrap_path.as_posix() == (
+        "wiki_code_space/templates/wiki_first_init_bootstrap.md"
     )
     assert ".github/copilot-instructions.md" in result.changed_files

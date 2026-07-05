@@ -44,6 +44,17 @@ python -m wiki_engine.cli claude --project code_space
 python -m wiki_engine.cli gemini --project code_space
 ```
 
+Installer commands write assistant instructions plus shared prompt guides under
+`wiki_<project>/templates/` inside the initialized project.
+
+Use the prompt guides by use case:
+
+- `llm_wiki_workflow_guide.md`: normal incremental wiki maintenance during
+  ongoing development.
+- `wiki_first_init_bootstrap.md`: one-time `/wiki-bootstrap "<seed_text>"`
+  workflow when enabling wiki maintenance in a project that already has working
+  code and existing decisions.
+
 This command orchestrates:
 
 1. Wiki scaffold and note updates.

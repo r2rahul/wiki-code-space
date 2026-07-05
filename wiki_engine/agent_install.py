@@ -22,7 +22,8 @@ class AgentInstallResult:
 
     agent_name: str
     instruction_path: Path
-    skill_path: Path
+    guide_path: Path
+    bootstrap_path: Path
     changed_files: list[str]
 
 
@@ -59,18 +60,26 @@ def install_agent_instructions(
     agent_name: str,
     jinja_env: Environment,
 ) -> AgentInstallResult:
-    """Install one agent instruction file plus the shared wiki skill guide."""
+    """Install one agent instruction file plus shared wiki prompt guides."""
 
     if agent_name not in AGENT_INSTRUCTION_PATHS:
         raise ValueError(f"Unsupported agent: {agent_name}")
 
     wiki_root = f"wiki_{project_name}"
-    skill_path = Path(".ai") / wiki_root / "llm_wiki_workflow_guide.md"
+    prompt_dir = Path(wiki_root) / "templates"
+    guide_path = prompt_dir / "llm_wiki_workflow_guide.md"
+    bootstrap_path = prompt_dir / "wiki_first_init_bootstrap.md"
     instruction_path = AGENT_INSTRUCTION_PATHS[agent_name]
     begin_marker = "<!-- wiki-engine:start -->"
     end_marker = "<!-- wiki-engine:end -->"
 
-    skill_content = jinja_env.get_template("llm_wiki_workflow_guide.md.j2").render(
+    guide_content = jinja_env.get_template("llm_wiki_workflow_guide.md").render(
+        project_name=project_name,
+        wiki_root=wiki_root,
+    )
+    bootstrap_prompt_content = jinja_env.get_template(
+        "wiki_first_init_bootstrap.md"
+    ).render(
         project_name=project_name,
         wiki_root=wiki_root,
     )
@@ -78,15 +87,23 @@ def install_agent_instructions(
         project_name=project_name,
         wiki_root=wiki_root,
         agent_name=agent_name,
-        skill_path=skill_path.as_posix(),
+        guide_path=guide_path.as_posix(),
+        bootstrap_path=bootstrap_path.as_posix(),
         begin_marker=begin_marker,
         end_marker=end_marker,
     )
 
     changed_files: list[str] = []
-    absolute_skill_path = repo_root / skill_path
-    if _write_if_changed(absolute_skill_path, f"{skill_content.rstrip()}\n"):
-        changed_files.append(skill_path.as_posix())
+    absolute_guide_path = repo_root / guide_path
+    if _write_if_changed(absolute_guide_path, f"{guide_content.rstrip()}\n"):
+        changed_files.append(guide_path.as_posix())
+
+    absolute_bootstrap_path = repo_root / bootstrap_path
+    if _write_if_changed(
+        absolute_bootstrap_path,
+        f"{bootstrap_prompt_content.rstrip()}\n",
+    ):
+        changed_files.append(bootstrap_path.as_posix())
 
     absolute_instruction_path = repo_root / instruction_path
     existing_content = (
@@ -106,6 +123,7 @@ def install_agent_instructions(
     return AgentInstallResult(
         agent_name=agent_name,
         instruction_path=instruction_path,
-        skill_path=skill_path,
+        guide_path=guide_path,
+        bootstrap_path=bootstrap_path,
         changed_files=changed_files,
     )

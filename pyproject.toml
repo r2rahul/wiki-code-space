@@ -8,7 +8,7 @@ packages = ["wiki_engine"]
 [tool.hatch.build.targets.sdist]
 include = [
     "wiki_engine/**/*.py",
-    "wiki_engine/templates/*.j2",
+    "wiki_engine/templates/*",
     "scripts/*.py",
     "config/wiki_engine.yaml",
     "README.md",

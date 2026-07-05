@@ -22,12 +22,16 @@ def write_minimal_templates(repo_root: Path) -> None:
     (template_dir / "agent_wiki_install.md.j2").write_text(
         "{{ begin_marker }}\n"
         "## wiki maintenance\n"
-        "wiki_{{ project_name }} {{ skill_path }}\n"
+        "wiki_{{ project_name }} {{ guide_path }} {{ bootstrap_path }}\n"
         "{{ end_marker }}\n",
         encoding="utf-8",
     )
-    (template_dir / "llm_wiki_workflow_guide.md.j2").write_text(
+    (template_dir / "llm_wiki_workflow_guide.md").write_text(
         "Guide for wiki_{{ project_name }}\n",
+        encoding="utf-8",
+    )
+    (template_dir / "wiki_first_init_bootstrap.md").write_text(
+        "Bootstrap for wiki_{{ project_name }}\n",
         encoding="utf-8",
     )
 
@@ -69,7 +73,10 @@ def test_update_creates_required_wiki_files(tmp_path: Path) -> None:
     assert (repo_root / "AGENTS.md").exists()
     assert (repo_root / "CLAUDE.md").exists()
     assert (
-        repo_root / ".ai" / "wiki_code_space" / "llm_wiki_workflow_guide.md"
+        repo_root / "wiki_code_space" / "templates" / "llm_wiki_workflow_guide.md"
+    ).exists()
+    assert (
+        repo_root / "wiki_code_space" / "templates" / "wiki_first_init_bootstrap.md"
     ).exists()
     assert "wiki_code_space" in (repo_root / "AGENTS.md").read_text(encoding="utf-8")
     assert "wiki_code_space" in (repo_root / "CLAUDE.md").read_text(encoding="utf-8")

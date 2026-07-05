@@ -143,7 +143,8 @@ def main(argv: list[str] | None = None) -> int:
         print("wiki_engine agent install completed")
         print(f"agent={result.agent_name}")
         print(f"instruction_path={result.instruction_path}")
-        print(f"skill_path={result.skill_path}")
+        print(f"guide_path={result.guide_path}")
+        print(f"bootstrap_path={result.bootstrap_path}")
         print(f"changed_files={len(result.changed_files)}")
         return 0
 

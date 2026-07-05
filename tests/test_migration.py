@@ -29,9 +29,15 @@ def test_initialize_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
     assert (project_root / "CLAUDE.md").exists()
     assert (
         project_root
-        / ".ai"
         / "wiki_legacy_analytics_project"
+        / "templates"
         / "llm_wiki_workflow_guide.md"
+    ).exists()
+    assert (
+        project_root
+        / "wiki_legacy_analytics_project"
+        / "templates"
+        / "wiki_first_init_bootstrap.md"
     ).exists()
     assert "wiki_legacy_analytics_project" in (
         project_root / "AGENTS.md"

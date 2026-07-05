@@ -26,8 +26,10 @@ This index is optimized for coding-agent navigation and fast retrieval.
     Template for session ingestion notes before distillation. Read before adding a new session note.
 
 ## LLM Maintenance
-- ../.ai/wiki_code_space/llm_wiki_workflow_guide.md
+- templates/llm_wiki_workflow_guide.md
     Shared agent guide for deciding what semantic content belongs in each wiki folder.
+- templates/wiki_first_init_bootstrap.md
+    One-time bootstrap prompt for enabling wiki maintenance in an already-developed project.
 
 ## Glossary
 - glossary/terms.md

@@ -92,10 +92,14 @@ python -m wiki_engine.cli update --project code_space
 Rules:
 - Before broad codebase exploration, read wiki_code_space/index.md.
 - If qmd is installed, prefer qmd query "<question>" -c wiki_code_space --json -n 10 before reading multiple wiki pages.
-- Load the shared maintenance guide at .ai/wiki_code_space/llm_wiki_workflow_guide.md before editing wiki content.
+- Load the shared maintenance guide at wiki_code_space/templates/llm_wiki_workflow_guide.md before editing wiki content.
+- For one-time first initialization in an already-developed project, use wiki_code_space/templates/wiki_first_init_bootstrap.md only when the user invokes /wiki-bootstrap.
 - Keep wiki notes semantic, brief, atomic, and business-relevant. Do not duplicate docstrings or implementation walkthroughs.
 - Never browse wiki_code_space/stage/ unless the user names an exact file path in the conversation.
 - After code, config, or test edits that affect behavior or documentation semantics, run python -m wiki_engine.cli update --project code_space once near completion.
 <!-- wiki-engine:end -->
+
+
+
 
 
