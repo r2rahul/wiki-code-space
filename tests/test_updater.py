@@ -12,8 +12,6 @@ def write_minimal_templates(repo_root: Path) -> None:
     template_dir.mkdir(parents=True, exist_ok=True)
     (template_dir / "index.md.j2").write_text("# {{ wiki_root }}\n", encoding="utf-8")
     (template_dir / "log.md.j2").write_text("# Update Log\n", encoding="utf-8")
-    (template_dir / "session_template.md.j2").write_text("# Session\n", encoding="utf-8")
-    (template_dir / "note_template.md.j2").write_text("{{ body }}\n", encoding="utf-8")
     (template_dir / "wiki_auto_refresh.md.j2").write_text(
         "## wiki auto refresh\n"
         "wiki_{{ project_name }}\n",
@@ -71,6 +69,12 @@ def test_update_creates_required_wiki_files(tmp_path: Path) -> None:
     assert (wiki_root / "qmd.yml").exists()
     assert (wiki_root / "stage" / ".noindex").exists()
     assert (wiki_root / "stage" / ".qmdexclude").exists()
+    assert not (wiki_root / "sessions" / "_template.md").exists()
+    assert not (wiki_root / "architecture" / "config_params.md").exists()
+    assert not (wiki_root / "qa" / "business.md").exists()
+    assert not (wiki_root / "qa" / "technical.md").exists()
+    assert not (wiki_root / "decisions" / "adr-0001-wiki-engine.md").exists()
+    assert not (wiki_root / "glossary" / "terms.md").exists()
     assert (repo_root / "AGENTS.md").exists()
     assert (repo_root / "CLAUDE.md").exists()
     assert (

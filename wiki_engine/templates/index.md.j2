@@ -6,24 +6,28 @@ graph exists, but it is maintained independently.
 This index is optimized for coding-agent navigation and fast retrieval.
 
 ## Architecture
-- architecture/config_params.md
-    Canonical explanation of config knobs and business impact. Read before changing any config defaults.
+Create `architecture/<topic>.md` only when there is durable system context,
+configuration behavior, data flow, or a cross-module contract worth preserving.
+Read relevant architecture notes before changing matching behavior.
 
 ## Decisions
-- decisions/adr-0001-wiki-engine.md
-    Decision record for coherent wiki update orchestration and bridging contracts. Read when modifying update behavior.
+Create `decisions/adr-YYYYMMDD-<topic>.md` only for real architectural
+decisions with durable tradeoffs. Read relevant ADRs before changing decision
+logic.
 
 ## Business QA
-- qa/business.md
-    Business validation checks and expected impact on operators and downstream decisions. Read before changing model thresholds.
+Create `qa/business.md` or focused `qa/<topic>.md` only when there are
+stakeholder-visible outcomes, alert-quality checks, operational risks, or
+decision-impact checks to preserve.
 
 ## Technical QA
-- qa/technical.md
-    Technical constraints, failure modes, and regression concerns. Read before refactoring pipelines.
+Create `qa/technical.md` or focused `qa/<topic>.md` only when there are
+regression risks, invariants, interfaces, or failure modes to preserve.
 
 ## Sessions
-- sessions/_template.md
-    Template for session ingestion notes before distillation. Read before adding a new session note.
+Create `sessions/YYYY-MM-DD-<topic-slug>.md` only when a failed approach led to
+a corrected implementation or a reusable constraint was discovered. Follow the
+session metadata and section rules in `templates/llm_wiki_workflow_guide.md`.
 
 ## LLM Maintenance
 - templates/llm_wiki_workflow_guide.md
@@ -32,14 +36,13 @@ This index is optimized for coding-agent navigation and fast retrieval.
     One-time bootstrap prompt for enabling wiki maintenance in an already-developed project.
 
 ## Glossary
-- glossary/terms.md
-    Shared domain and engineering terms for this workspace. Read when terms seem ambiguous.
+Create `glossary/<term-slug>.md` only for project-specific terms,
+abbreviations, or overloaded meanings that reduce ambiguity.
 
 ## First Files To Load
 - index.md
-- architecture/config_params.md
-- qa/business.md
-- decisions/adr-0001-wiki-engine.md
+- templates/llm_wiki_workflow_guide.md before editing wiki content
+- folder-specific notes only when the user request or changed module makes them relevant
 
 ## Never Auto-Read
 - stage/

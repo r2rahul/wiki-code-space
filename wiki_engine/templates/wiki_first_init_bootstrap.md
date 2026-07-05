@@ -16,6 +16,10 @@ When the user types `/wiki-bootstrap "<seed_text>"`, do this sequence:
    python -m wiki_engine.cli init <target_dir> --project {{ project_name }}
    ```
 
+   Init creates wiki folders, index/log/qmd metadata, agent instructions, and
+   prompt guides. It does not create example notes in `architecture/`,
+   `decisions/`, `qa/`, `sessions/`, or `glossary/`.
+
 4. Load the shared LLM maintenance guide if present:
 
    ```text
@@ -35,6 +39,8 @@ When the user types `/wiki-bootstrap "<seed_text>"`, do this sequence:
    - assumptions
    - open questions
    - immediate next tracking targets
+
+   Follow the metadata contract and session section order in the shared guide.
 
 6. Run once:
 

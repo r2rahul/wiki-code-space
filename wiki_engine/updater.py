@@ -209,96 +209,6 @@ class WikiUpdater:
                 date_text=now.strftime(self.config.date_format),
             ),
             wiki_root / "qmd.yml": self._render_qmd_yaml(project_name=project_name),
-            wiki_root / "sessions" / "_template.md": self._render_template(
-                "session_template.md.j2",
-                date_text=now.strftime(self.config.date_format),
-            ),
-            wiki_root / "architecture" / "config_params.md": self._render_template(
-                "note_template.md.j2",
-                note_id="architecture-config-params",
-                note_title="Configuration Parameters",
-                note_type="architecture",
-                note_tags="architecture, config",
-                date_text=now.strftime(self.config.date_format),
-                source="agent",
-                body=(
-                    "# Context\n"
-                    "Canonical explanation of config knobs and business impact.\n\n"
-                    "Target: src/models/forecasting.py -> run_forecast()\n"
-                    "Config Parameter: volatility_penalty in config/config.yaml\n"
-                    "Business Context: Increasing volatility_penalty above 0.5 "
-                    "reduces false-positive alerts, lowering operator alert "
-                    "fatigue.\n\n"
-                    "## Related\n"
-                    "- [[qa/business]]\n"
-                    "- [[qa/technical]]\n"
-                ),
-            ),
-            wiki_root / "qa" / "business.md": self._render_template(
-                "note_template.md.j2",
-                note_id="qa-business",
-                note_title="Business QA",
-                note_type="qa",
-                note_tags="qa, business",
-                date_text=now.strftime(self.config.date_format),
-                source="agent",
-                body=(
-                    "# Questions\n"
-                    "Business validation checks and expected downstream impact.\n\n"
-                    "Target: src/models/forecasting.py -> run_forecast()\n"
-                    "Config Parameter: volatility_penalty in config/config.yaml\n\n"
-                    "## Related\n"
-                    "- [[architecture/config_params]]\n"
-                ),
-            ),
-            wiki_root / "qa" / "technical.md": self._render_template(
-                "note_template.md.j2",
-                note_id="qa-technical",
-                note_title="Technical QA",
-                note_type="qa",
-                note_tags="qa, technical",
-                date_text=now.strftime(self.config.date_format),
-                source="agent",
-                body=(
-                    "# Questions\n"
-                    "Technical quality checks for behavior regressions and "
-                    "constraints.\n\n"
-                    "Target: src/models/forecasting.py -> run_forecast()\n\n"
-                    "## Related\n"
-                    "- [[architecture/config_params]]\n"
-                ),
-            ),
-            wiki_root / "decisions" / "adr-0001-wiki-engine.md": self._render_template(
-                "note_template.md.j2",
-                note_id="adr-0001-wiki-engine",
-                note_title="ADR 0001 Wiki Engine Workflow",
-                note_type="decision",
-                note_tags="adr, decision",
-                date_text=now.strftime(self.config.date_format),
-                source="agent",
-                body=(
-                    "# Decision\n"
-                    "Use python -m wiki_engine.cli update --project <name> as "
-                    "the one coherent update call.\n\n"
-                    "## Related\n"
-                    "- [[architecture/config_params]]\n"
-                    "- [[qa/technical]]\n"
-                ),
-            ),
-            wiki_root / "glossary" / "terms.md": self._render_template(
-                "note_template.md.j2",
-                note_id="glossary-terms",
-                note_title="Glossary",
-                note_type="glossary",
-                note_tags="glossary",
-                date_text=now.strftime(self.config.date_format),
-                source="agent",
-                body=(
-                    "# Terms\n"
-                    "- Graphifyy: optional structural knowledge graph of code dependencies.\n"
-                    "- Wiki: lightweight semantic notes with rationale and business context.\n"
-                ),
-            ),
             wiki_root / "stage" / ".noindex": "stage is excluded from indexing\n",
             wiki_root / "stage" / ".qmdexclude": "stage is excluded from qmd\n",
         }
@@ -387,7 +297,7 @@ class WikiUpdater:
 
         content = {
             "collection": f"wiki_{project_name}",
-            "ignore": ["stage/**", "sessions/_template.md", "_*.md"],
+            "ignore": ["stage/**", "_*.md"],
         }
         return yaml.safe_dump(content, sort_keys=False)
 

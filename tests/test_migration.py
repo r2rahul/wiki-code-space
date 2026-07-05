@@ -25,6 +25,12 @@ def test_initialize_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
     assert (wiki_root / "index.md").exists()
     assert (wiki_root / "log.md").exists()
     assert (wiki_root / "stage" / ".noindex").exists()
+    assert not (wiki_root / "sessions" / "_template.md").exists()
+    assert not (wiki_root / "architecture" / "config_params.md").exists()
+    assert not (wiki_root / "qa" / "business.md").exists()
+    assert not (wiki_root / "qa" / "technical.md").exists()
+    assert not (wiki_root / "decisions" / "adr-0001-wiki-engine.md").exists()
+    assert not (wiki_root / "glossary" / "terms.md").exists()
     assert (project_root / "AGENTS.md").exists()
     assert (project_root / "CLAUDE.md").exists()
     assert (

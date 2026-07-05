@@ -68,11 +68,43 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     assert "## Never Auto-Read" in index_text
     assert "- stage/" in index_text
 
-    # Assert: qmd ignore policy excludes stage and scaffold files.
+    # Assert: qmd ignore policy excludes stage and utility files.
     qmd_config = yaml.safe_load((wiki_root / "qmd.yml").read_text(encoding="utf-8"))
     assert qmd_config["collection"] == "wiki_code_space"
     assert "stage/**" in qmd_config["ignore"]
-    assert "sessions/_template.md" in qmd_config["ignore"]
+    assert "_*.md" in qmd_config["ignore"]
+
+    # Assert: first update does not create placeholder semantic notes.
+    assert not (wiki_root / "sessions" / "_template.md").exists()
+    assert not (wiki_root / "architecture" / "config_params.md").exists()
+    assert not (wiki_root / "qa" / "business.md").exists()
+    assert not (wiki_root / "qa" / "technical.md").exists()
+    assert not (wiki_root / "decisions" / "adr-0001-wiki-engine.md").exists()
+    assert not (wiki_root / "glossary" / "terms.md").exists()
+
+    session_path = wiki_root / "sessions" / "2026-07-05-config-routing.md"
+    session_path.write_text(
+        (
+            "---\n"
+            "id: session-2026-07-05-config-routing\n"
+            "title: Session Config Routing\n"
+            "type: session\n"
+            "tags: [session, distilled]\n"
+            "last_updated: 2026-07-05\n"
+            "status: active\n"
+            "source: agent\n"
+            "---\n\n"
+            "# Reusable Knowledge\n"
+            "- Config Parameter: volatility_penalty in config/config.yaml; "
+            "Target: src/models/forecasting.py -> run_forecast()\n\n"
+            "# Distillation Status\n"
+            "- [ ] Applied to permanent note(s)\n"
+            "- [ ] Logged in log.md\n"
+        ),
+        encoding="utf-8",
+    )
+
+    result = updater.update(project_override="code_space")
 
     # Assert: front matter keys required by Obsidian contract.
     architecture_text = (wiki_root / "architecture" / "config_params.md").read_text(
@@ -90,6 +122,7 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     }
     assert required_keys.issubset(set(architecture_front_matter.keys()))
     assert architecture_front_matter["type"] == "architecture"
+    assert architecture_front_matter["source"] == "agent"
 
     # Assert: graph bridge has lexical code reference links.
     assert "Target: src/models/forecasting.py -> run_forecast()" in architecture_text

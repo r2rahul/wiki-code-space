@@ -21,6 +21,11 @@ Initialize any existing project folder with this wiki workflow:
 python -m wiki_engine.cli init /path/to/existing-project
 ```
 
+Init creates the wiki folders, `index.md`, `log.md`, `qmd.yml`, agent
+instructions, and shared prompt guides. It does not create example notes under
+`sessions/`, `qa/`, `glossary/`, `architecture/`, or `decisions/`; those notes
+are created later only when source-grounded project context exists.
+
 qmd indexing is enabled by default. Use the explicit flags when you want to
 make the indexing choice visible in automation:
 

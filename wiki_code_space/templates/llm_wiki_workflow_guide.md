@@ -20,6 +20,33 @@ Use this guide when maintaining the wiki. Capture semantic context that helps a 
   `Business Context: higher volatility_penalty reduces false-positive alerts`.
 - Preserve existing front matter keys and naming conventions.
 - Never read, summarize, index, or update wiki_code_space/stage/ unless the user names an exact stage file path.
+- Do not create placeholder notes. Create a wiki note only when it captures
+  source-grounded project knowledge that will help future maintenance.
+
+## Metadata Contract
+
+Every wiki note created under `architecture/`, `decisions/`, `qa/`,
+`sessions/`, or `glossary/` must start with YAML front matter:
+
+```yaml
+---
+id: <folder>-<stable-slug>
+title: <Human Title>
+type: <architecture|decision|qa|session|glossary>
+tags: [<folder>, <specific-topic>]
+last_updated: YYYY-MM-DD
+status: active
+source: agent
+---
+```
+
+Rules:
+- Use lowercase kebab-case for `id` and filenames.
+- Keep `id` stable after creation; update `last_updated` when semantics change.
+- Use `source: agent` for agent-authored notes and `source: human` only when
+  the user directly provides the note content.
+- Include a `## Related` section with wiki links when another note is directly
+  relevant. Omit it when there is no grounded relationship.
 
 ## architecture/
 
@@ -29,6 +56,11 @@ Capture:
 - What mechanism exists and why it matters.
 - Config parameters with business impact, safe ranges, and interactions.
 - Non-obvious constraints a future change must preserve.
+
+Suggested sections:
+- `# Context`
+- `## Constraints`
+- `## Related`
 
 Omit:
 - Line-by-line implementation descriptions.
@@ -43,6 +75,14 @@ Capture:
 - The business or operational force that made the decision valuable.
 - Alternatives only when they explain future tradeoffs.
 
+Suggested filename: `adr-YYYYMMDD-<topic>.md`.
+
+Suggested sections:
+- `# Decision`
+- `## Context`
+- `## Consequences`
+- `## Related`
+
 Omit:
 - Debate transcripts, speculative options, and stale proposals.
 
@@ -54,6 +94,11 @@ Capture:
 - Business checks in `business.md`: stakeholder-visible outcomes, alert quality, operational risk, and decision impact.
 - Technical checks in `technical.md`: regression risks, invariants, interfaces, and failure modes.
 
+Suggested sections:
+- `# Questions`
+- `## Evidence`
+- `## Related`
+
 Omit:
 - Generic test plans that do not connect to project behavior.
 
@@ -64,13 +109,19 @@ Use only when a failed approach led to a corrected implementation or a reusable 
 Write new artifacts as:
 wiki_code_space/sessions/YYYY-MM-DD-<topic-slug>.md
 
-Use wiki_code_space/sessions/_template.md.
-
 Capture:
 - Problem.
 - Failed approach and concrete failure symptom.
 - Final solution and key constraint discovered.
 - Linked wiki pages that should be updated.
+
+Use this section order:
+- `# Problem`
+- `# Approaches Tried`
+- `# Solution`
+- `# Reusable Knowledge`
+- `# Related`
+- `# Distillation Status`
 
 Omit:
 - Narration, praise, status chatter, and routine successful implementation notes.
@@ -84,6 +135,11 @@ Capture:
 - The project-specific meaning.
 - A link to the most relevant wiki page when useful.
 
+Suggested sections:
+- `# Meaning`
+- `## Usage`
+- `## Related`
+
 Omit:
 - Generic dictionary definitions.
 
@@ -93,4 +149,5 @@ The update command owns this append-only file. Do not hand-edit it unless repair
 
 ## qmd.yml
 
-Keep the qmd collection name aligned with wiki_code_space. Preserve exclusions for stage files and templates.
+Keep the qmd collection name aligned with wiki_code_space. Preserve exclusions
+for stage files and underscore-prefixed utility files.

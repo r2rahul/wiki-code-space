@@ -99,7 +99,3 @@ Rules:
 - After code, config, or test edits that affect behavior or documentation semantics, run python -m wiki_engine.cli update --project code_space once near completion.
 <!-- wiki-engine:end -->
 
-
-
-
-
