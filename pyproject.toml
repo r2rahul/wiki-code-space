@@ -1,0 +1,23 @@
+[project]
+name = "wiki-code-space"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.1",
+    "pandas>=3.0.3",
+    "polars>=1.42.1",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+    "scipy>=1.18.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "ipython>=9.15.0",
+    "jupyterlab>=4.6.1",
+    "pytest>=9.1.1",
+    "ruff>=0.15.20",
+]
