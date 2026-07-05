@@ -20,13 +20,17 @@ class InitializationResult:
     update_result: UpdateResult
 
 
-def build_default_config(project_name: str) -> dict[str, object]:
+def build_default_config(
+    project_name: str,
+    qmd_enabled: bool = True,
+) -> dict[str, object]:
     """Build default initialization config using mandatory workflow keys."""
 
     return {
         "project_name": project_name,
         "wiki_root": f"wiki_{project_name}",
         "qmd_collection": f"wiki_{project_name}",
+        "qmd_enabled": qmd_enabled,
         "date_format": "%Y-%m-%d",
         "timestamp_format": "%Y-%m-%dT%H:%M:%S",
         "stage_exclude_paths": ["stage/**"],
@@ -39,6 +43,7 @@ def ensure_initialization_config(
     project_root: Path,
     project_name: str,
     config_relpath: str,
+    qmd_enabled: bool = True,
 ) -> Path:
     """Create initialization config if missing and return absolute config path."""
 
@@ -46,7 +51,10 @@ def ensure_initialization_config(
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not config_path.exists():
-        config_payload = build_default_config(project_name=project_name)
+        config_payload = build_default_config(
+            project_name=project_name,
+            qmd_enabled=qmd_enabled,
+        )
         config_path.write_text(
             yaml.safe_dump(config_payload, sort_keys=False),
             encoding="utf-8",
@@ -59,6 +67,7 @@ def initialize_project(
     target_dir: str,
     project_name: str | None = None,
     config_relpath: str = "config/wiki_engine.yaml",
+    qmd_enabled: bool = True,
 ) -> InitializationResult:
     """Bootstrap and run wiki workflow in an existing project folder."""
 
@@ -72,6 +81,7 @@ def initialize_project(
         project_root=project_root,
         project_name=normalized_name,
         config_relpath=config_relpath,
+        qmd_enabled=qmd_enabled,
     )
 
     updater = WikiUpdater(repo_root=project_root, config_path=config_path)
@@ -92,6 +102,7 @@ def ensure_migration_config(
     project_root: Path,
     project_name: str,
     config_relpath: str,
+    qmd_enabled: bool = True,
 ) -> Path:
     """Backward-compatible alias for initialization config creation."""
 
@@ -99,6 +110,7 @@ def ensure_migration_config(
         project_root=project_root,
         project_name=project_name,
         config_relpath=config_relpath,
+        qmd_enabled=qmd_enabled,
     )
 
 
@@ -106,6 +118,7 @@ def migrate_project(
     target_dir: str,
     project_name: str | None = None,
     config_relpath: str = "config/wiki_engine.yaml",
+    qmd_enabled: bool = True,
 ) -> InitializationResult:
     """Backward-compatible alias for initialize_project."""
 
@@ -113,4 +126,5 @@ def migrate_project(
         target_dir=target_dir,
         project_name=project_name,
         config_relpath=config_relpath,
+        qmd_enabled=qmd_enabled,
     )

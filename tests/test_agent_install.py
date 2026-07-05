@@ -20,6 +20,7 @@ def test_install_vscode_agent_writes_instruction_and_guides(tmp_path: Path) -> N
             "project_name: code_space\n"
             "wiki_root: wiki_code_space\n"
             "qmd_collection: wiki_code_space\n"
+            "qmd_enabled: true\n"
             "date_format: '%Y-%m-%d'\n"
             "timestamp_format: '%Y-%m-%dT%H:%M:%S'\n"
             "stage_exclude_paths:\n"

@@ -49,9 +49,24 @@ def test_initialize_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
     config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert config_payload["project_name"] == "legacy_analytics_project"
     assert config_payload["qmd_collection"] == "wiki_legacy_analytics_project"
+    assert config_payload["qmd_enabled"] is True
 
     assert result.project_name == "legacy_analytics_project"
     assert len(result.update_result.changed_files) >= 1
+
+
+def test_initialize_project_can_disable_qmd_indexing(tmp_path: Path) -> None:
+    """Initialization should persist explicit qmd indexing opt-out."""
+
+    project_root = tmp_path / "legacy-analytics-project"
+    project_root.mkdir(parents=True)
+
+    result = initialize_project(target_dir=str(project_root), qmd_enabled=False)
+
+    config_path = project_root / "config" / "wiki_engine.yaml"
+    config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert config_payload["qmd_enabled"] is False
+    assert result.update_result.qmd_result["status"] == "disabled"
 
 
 def test_migrate_project_alias_still_initializes(tmp_path: Path) -> None:

@@ -21,6 +21,14 @@ Initialize any existing project folder with this wiki workflow:
 python -m wiki_engine.cli init /path/to/existing-project
 ```
 
+qmd indexing is enabled by default. Use the explicit flags when you want to
+make the indexing choice visible in automation:
+
+```bash
+python -m wiki_engine.cli init /path/to/existing-project --qmd-index
+python -m wiki_engine.cli init /path/to/existing-project --no-qmd-index
+```
+
 Optional override for project name and config path:
 
 ```bash
@@ -60,15 +68,46 @@ This command orchestrates:
 1. Wiki scaffold and note updates.
 2. Session note distillation into permanent notes.
 3. Graph-compatible bridge edge extraction from code references.
-4. qmd index refresh if qmd is installed.
+4. qmd index refresh when qmd indexing is enabled.
 5. Append-only `log.md` update entry.
 
-## qmd query convention
+## qmd indexing and search
+
+qmd is the default accelerator for wiki indexing and search. If qmd is missing
+or unhealthy, wiki_engine logs a warning and falls back to deterministic
+markdown search over the wiki, while preserving the stage-folder exclusions.
 
 Use collection-qualified queries:
 
 ```bash
 qmd query "why volatility_penalty changed" -c wiki_code_space --json -n 10
+```
+
+Or use the wiki_engine search command, which applies the same qmd-first
+fallback behavior:
+
+```bash
+python -m wiki_engine.cli search "why volatility_penalty changed" --project code_space -n 10
+```
+
+## Graphify integration
+
+The wiki stores semantic rationale, business context, decisions, QA constraints,
+and reusable session lessons. Graphify can use that wiki layer alongside its
+structural code graph so community detection can group not only files and code
+symbols, but also the semantic knowledge that explains why the system behaves
+the way it does.
+
+Build or refresh the Graphify wiki view from the project root:
+
+```bash
+graphify . --wiki
+```
+
+Then keep the wiki bridge metadata and qmd index fresh with:
+
+```bash
+python -m wiki_engine.cli update --project code_space
 ```
 
 ## Build and test

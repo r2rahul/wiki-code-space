@@ -31,6 +31,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to wiki_engine YAML config",
     )
 
+    search_parser = subparsers.add_parser("search", help="Search project wiki")
+    search_parser.add_argument("query", help="Wiki search query")
+    search_parser.add_argument(
+        "--project",
+        dest="project_name",
+        default=None,
+        help="Override project_name from config/wiki_engine.yaml",
+    )
+    search_parser.add_argument(
+        "--config",
+        dest="config_path",
+        default="config/wiki_engine.yaml",
+        help="Path to wiki_engine YAML config",
+    )
+    search_parser.add_argument(
+        "-n",
+        dest="result_count",
+        type=int,
+        default=10,
+        help="Maximum search results",
+    )
+
     init_parser = subparsers.add_parser(
         "init",
         help="Initialize wiki workflow in an existing project folder",
@@ -51,6 +73,20 @@ def build_parser() -> argparse.ArgumentParser:
         default="config/wiki_engine.yaml",
         help="Relative config path in target project",
     )
+    init_qmd_group = init_parser.add_mutually_exclusive_group()
+    init_qmd_group.add_argument(
+        "--qmd-index",
+        dest="qmd_enabled",
+        action="store_true",
+        default=True,
+        help="Enable qmd wiki indexing and qmd-first search",
+    )
+    init_qmd_group.add_argument(
+        "--no-qmd-index",
+        dest="qmd_enabled",
+        action="store_false",
+        help="Disable qmd wiki indexing and use markdown search fallback",
+    )
     migrate_parser = subparsers.add_parser("migrate", help=argparse.SUPPRESS)
     migrate_parser.add_argument("target_dir")
     migrate_parser.add_argument("--project", dest="project_name", default=None)
@@ -59,6 +95,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="config_path",
         default="config/wiki_engine.yaml",
     )
+    migrate_parser.set_defaults(qmd_enabled=True)
 
     for agent_name in ("codex", "vscode", "claude", "gemini"):
         agent_parser = subparsers.add_parser(
@@ -94,6 +131,39 @@ def run_update(project_name: str | None, config_path: str) -> int:
     return 0
 
 
+def run_search(
+    query_text: str,
+    project_name: str | None,
+    config_path: str,
+    result_count: int,
+) -> int:
+    """Execute qmd-first wiki search and print a concise result."""
+
+    repo_root = Path.cwd()
+    updater = WikiUpdater(repo_root=repo_root, config_path=repo_root / config_path)
+    result = updater.search(
+        query_text=query_text,
+        project_override=project_name,
+        result_count=result_count,
+    )
+
+    print(f"wiki_engine search backend={result.get('backend', 'unknown')}")
+    print(f"status={result.get('status', 'unknown')}")
+
+    if result.get("backend") == "qmd" and isinstance(result.get("stdout"), str):
+        print(result["stdout"])
+        return 0
+
+    for item in result.get("results", []):
+        print(
+            f"{item['path']}:{item['line']} "
+            f"(score={item['score']}) {item['snippet']}"
+        )
+    if not result.get("results"):
+        print("No wiki results found")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint for python -m wiki_engine.cli and script usage."""
 
@@ -106,11 +176,20 @@ def main(argv: list[str] | None = None) -> int:
             config_path=args.config_path,
         )
 
+    if args.command == "search":
+        return run_search(
+            query_text=args.query,
+            project_name=args.project_name,
+            config_path=args.config_path,
+            result_count=args.result_count,
+        )
+
     if args.command in {"init", "migrate"}:
         result = initialize_project(
             target_dir=args.target_dir,
             project_name=args.project_name,
             config_relpath=args.config_path,
+            qmd_enabled=args.qmd_enabled,
         )
         print("wiki_engine init completed")
         print(f"project_root={result.project_root}")

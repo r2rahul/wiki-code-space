@@ -13,7 +13,7 @@ import yaml
 
 from wiki_engine.agent_install import install_agent_instructions
 from wiki_engine.graph_bridge import update_graph_bridge
-from wiki_engine.qmd_bridge import refresh_qmd_index
+from wiki_engine.qmd_bridge import refresh_qmd_index, search_wiki
 from wiki_engine.session_distill import distill_session_note, discover_session_notes
 
 
@@ -24,6 +24,7 @@ class WikiEngineConfig:
     project_name: str
     wiki_root: str
     qmd_collection: str
+    qmd_enabled: bool
     date_format: str
     timestamp_format: str
     stage_exclude_paths: list[str]
@@ -83,6 +84,7 @@ class WikiUpdater:
             project_name=str(raw_config["project_name"]),
             wiki_root=str(raw_config["wiki_root"]),
             qmd_collection=str(raw_config["qmd_collection"]),
+            qmd_enabled=bool(raw_config.get("qmd_enabled", True)),
             date_format=str(raw_config["date_format"]),
             timestamp_format=str(raw_config["timestamp_format"]),
             stage_exclude_paths=list(raw_config["stage_exclude_paths"]),
@@ -132,6 +134,7 @@ class WikiUpdater:
             wiki_root=wiki_root,
             qmd_collection=f"wiki_{project_name}",
             exclude_paths=self.config.stage_exclude_paths,
+            qmd_enabled=self.config.qmd_enabled,
         )
 
         changed_files.append(
@@ -149,6 +152,25 @@ class WikiUpdater:
             changed_files=sorted(set(changed_files)),
             graph_result=graph_result,
             qmd_result=qmd_result,
+        )
+
+    def search(
+        self,
+        query_text: str,
+        project_override: str | None = None,
+        result_count: int = 10,
+    ) -> dict[str, Any]:
+        """Search the project wiki using qmd with markdown fallback."""
+
+        project_name = project_override or self.config.project_name
+        wiki_root = self.repo_root / f"wiki_{project_name}"
+        return search_wiki(
+            query_text=query_text,
+            wiki_root=wiki_root,
+            qmd_collection=f"wiki_{project_name}",
+            exclude_paths=self.config.stage_exclude_paths,
+            result_count=result_count,
+            qmd_enabled=self.config.qmd_enabled,
         )
 
     def _ensure_wiki_scaffold(
