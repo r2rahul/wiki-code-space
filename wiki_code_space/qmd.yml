@@ -1,0 +1,5 @@
+collection: wiki_code_space
+ignore:
+- stage/**
+- sessions/_template.md
+- _*.md

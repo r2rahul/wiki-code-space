@@ -1,23 +1,35 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["wiki_engine"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "wiki_engine/**/*.py",
+    "wiki_engine/templates/*.j2",
+    "config/wiki_engine.yaml",
+    "README.md",
+]
+
 [project]
 name = "wiki-code-space"
 version = "0.1.0"
-description = "Add your description here"
+description = "Wiki workflow engine that bridges code structure and semantic rationale"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11"
 dependencies = [
-    "numpy>=2.5.1",
-    "pandas>=3.0.3",
-    "polars>=1.42.1",
-    "python-dotenv>=1.2.2",
+    "graphifyy>=0.1.0",
+    "jinja2>=3.1.4",
     "pyyaml>=6.0.3",
-    "scipy>=1.18.0",
 ]
+
+[project.scripts]
+wiki-engine = "wiki_engine.cli:main"
 
 [dependency-groups]
 dev = [
-    "ipykernel>=7.3.0",
-    "ipython>=9.15.0",
-    "jupyterlab>=4.6.1",
     "pytest>=9.1.1",
     "ruff>=0.15.20",
 ]
