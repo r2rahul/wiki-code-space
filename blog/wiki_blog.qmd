@@ -1,6 +1,6 @@
 ---
-title: "The Notes I Did Not Want to Lose"
-subtitle: "A practitioner guide on building a code wiki that helps both people and agents"
+title: "The Notes I Did Not Want to Lose, while writing analysis code"
+subtitle: "A practical guide to preserving context while building a quant code for both people and agents"
 date: today
 format:
     html:
