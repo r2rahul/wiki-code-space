@@ -1,6 +1,6 @@
 ---
-title: "Why I Built wiki_code_space"
-subtitle: "From Note Sprawl to Agent-First, Semantic Workflows"
+title: "The Notes I Did Not Want to Lose"
+subtitle: "A practitioner guide on building a code wiki that helps both people and agents"
 date: today
 format:
     html:
@@ -17,26 +17,26 @@ bibliography: skeleton.bib
 
 ## Motivation
 
-I still remember that my first scientific code was `Fortran 77` bisection method written in the lab with quintessil CRT screen with desktop fan guzzling making it evident that colling is going on. Next, was having lab notebook to capture important conceptual (semantic knowledge) notes like why relative error not absolute error as convergence criteria, what will happen if max iteration limit is not set, typical notes that don't find its way in code comments. Fast forward there is paradig shift now, coding agennts now do a fantastic job in writign codes, but the capturing semantic informations still remains as fundamental to process as was was then, information that helps humans also helps agents, so far this has been my expereince and observations.  AI agents makes thisng  artifacts reu-usable, and reproducible these artifacts to automate a business workflow. Next, as I adopted AI first coding I also created lots of planning, prompt, and specifications docuemnts, which had lots of semantic knoweledge buried in there and scattered. Quite often I had to do naviagte these files to hunt for specific infromation like why i decided to have default config parameter this not this. That lead to motivation to find more sustainable solution and solution was simple and lying to right infron of me Wiki [@karpathy_llm_wiki_2026, @ond]. I did not need more files; I needed stronger relationships between ideas, code, and decisions.
+I began coding with a paper lab notebook beside me. In my first scientific work (a Fortran 77 bisection program), the code handled computation, but the notebook held the important reasoning: why relative error was better than absolute error in one case, why an iteration cap was necessary, and what assumptions made results trustworthy. That context made the work understandable.
 
-This project started with motivation I wanted a way to preserve context so an agent can reason with it, not just search it. Sharing this template to broader community if the current template finds utility in there workflow. 
+Today, AI agents can write code quickly, but the same old problem remains: rationale gets scattered across prompts, plans, and specs. I kept losing decisions in file sprawl, including simple but important choices like default parameter values and why they were chosen. I did not need more notes. I needed better links between ideas, code, and decisions [@karpathy_llm_wiki_2026; @ond].
 
 ## Method
 
-`wiki_code_space` treats code as a medium for organizing thought. It combines a lightweight wiki, semantic links, and repeatable update flows so rationale stays connected to implementation. 
+`wiki_code_space` is my practical answer. It uses a lightweight wiki, semantic links, and repeatable update steps so reasoning stays close to implementation.
 
-The wiki folder is organized as an Obsidian vault markdown syntax so can be opened in Obsidian as an vault for easier human navigationa and reading. The wiki is a living document: it is updated as code changes, and it is versioned alongside the code. The wiki is also a source of truth for agents: it can be queried, reasoned over, and used to generate new code. The current template is designed for quantitative workflows, but the principles are broadly applicable. Also, the prompt design is geared towards graphifyy packages [@graphify_labs_graphify_2026] semantic relations capture, so that when graphify runs a graph build out it integrates these infromation in graph nodes and edges along with better community grouping.
+The wiki is plain Markdown in an Obsidian-friendly structure, versioned with the code, and readable by both humans and agents. It is a living layer that evolves with implementation, so context does not drift away from code over time. The prompts are designed to capture information that Graphify can interpret easily for semantic relationship inference, which supports token efficiency and faster workspace navigation in my quantitative research workflow. Because these prompts live in the wiki folder, they can be tuned to project-specific needs [@graphify_labs_graphify_2026].
 
-The goal is agent-first development: use tools that keep concepts, decisions, and code in one navigable structure. This is not a bulletproof recipe. It is a practical template you can adapt to your own quantitative analysis stack.
+This is not a perfect recipe. It is a reusable template for agent-first quantitative work.
 
 GitHub repository: [PLACEHOLDER_GITHUB_LINK]
 
 ## Conclusion
 
-The core idea is simple: when semantic relationships are explicit, both humans and agents work better. This template is meant to inspire a shift in how we build analytical systems: not only writing code that runs, but writing code that remembers why it exists.
+The idea is simple: when relationships are explicit, both humans and agents work better. The idea that is conveyed is to treat code as living memory, not just execution.
 
 ---
 
-**LinkedIn post (50 words)**
+**LinkedIn post**
 
-Built something small but important: a template for agent-first development in quantitative workflows. `wiki_code_space` turns scattered notes into connected, semantic context so decisions stay visible and reusable. It is not a rigid recipe, but a practical starting point. Would love your feedback and thoughts. Read the full story here: [PLACEHOLDER_BLOG_LINK]
+I built this after repeatedly losing important decisions in prompt and notes sprawl. `wiki_code_space` is my attempt to keep reasoning, code, and context connected for both humans and agents. It is a simple template, not a strict rulebook. If this resonates, read the blog: [PLACEHOLDER_BLOG_LINK]
