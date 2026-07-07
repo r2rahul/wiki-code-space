@@ -17,9 +17,9 @@ bibliography: skeleton.bib
 
 ## Why This Started
 
-I began coding with a paper lab notebook beside me. In my first scientific work (a Fortran 77 bisection program), the code handled computation, but the notebook held the important reasoning: why relative error was better than absolute error in one case, why an iteration cap was necessary, and what assumptions made results trustworthy. That context made the work understandable.
+I began coding with a paper lab notebook beside me. In my first scientific computing exercise (a Fortran 77 bisection program), the code handled computation, but the notebook held the important reasoning: why relative error was better than absolute error in one case, why an iteration cap was necessary, and what assumptions made results trustworthy. That context made the work understandable.
 
-Today, AI agents can write code quickly, but the same old problem remains: rationale gets scattered across prompts, plans, and specs. I kept losing decisions in file sprawl, including simple but important choices like default parameter values and why they were chosen. I did not need more notes. I needed better links between ideas, code, and decisions [@karpathy_llm_wiki_2026; @ond].
+Today, AI agents can write code quickly, but the same old problem remains: rationale gets scattered across prompts, plans, and specs. I kept losing decisions in file sprawls of prompts and agent planning docs, including simple but important choices like default parameter values and why they were chosen. I did not need more notes. I needed better links between ideas, code, and decisions [@karpathy_llm_wiki_2026; @ond].
 
 ## How I Built It
 
