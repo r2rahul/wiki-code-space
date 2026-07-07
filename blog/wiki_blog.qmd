@@ -33,7 +33,9 @@ GitHub repository: [PLACEHOLDER_GITHUB_LINK]
 
 ## What I Learned
 
-The idea is simple: when relationships are explicit, both humans and agents work better. The idea that is conveyed is to treat code as living memory, not just execution.
+The idea is simple: when relationships are explicit, both humans and agents work better. The idea that is conveyed is to treat code as living memory, not just execution. The workflow is similar to how we do git commits: as one unit of work is completed in our coding workflow, the wiki is similarly LLM maintained update as one unit of conceptual decisions [^1] is made. 
+
+[^1]: The conceptual update is guided by the prompt with deterministic set of instructions, capturing what, why and where with other user specifications
 
 ---
 
