@@ -63,3 +63,5 @@ images/*
 *.db
 .snakemake/*
 iocache/*
+blog/wiki_blog.html
+blog/wiki_blog.pdf
