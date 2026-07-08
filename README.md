@@ -126,10 +126,3 @@ Because `src/models/forecasting.py`, `run_forecast()`, and `config.yaml` are
 named directly, graph communities can connect the wiki rationale to the
 forecasting code. When an agent queries the graph about forecasting, it can
 retrieve both implementation context and business rationale.
-
-## Build and test
-
-```bash
-make test
-make build
-```
