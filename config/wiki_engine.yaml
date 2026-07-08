@@ -1,0 +1,12 @@
+project_name: code_space
+wiki_root: wiki_code_space
+qmd_collection: wiki_code_space
+qmd_enabled: true
+date_format: "%Y-%m-%d"
+timestamp_format: "%Y-%m-%dT%H:%M:%S"
+stage_exclude_paths:
+  - stage/**
+default_tags:
+  - wiki
+  - agent
+update_mode: coherent

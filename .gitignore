@@ -1,0 +1,67 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# --- Data Science Specific ---
+# Ignore data (except .gitkeep)
+data/*
+!data/.gitkeep
+!data/**/.gitkeep
+
+# Ignore models
+models/*.pkl
+models/*.h5
+models/*.joblib
+models/*.onnx
+
+# Ignore notebook checkpoints
+.ipynb_checkpoints
+**/.ipynb_checkpoints/
+
+# Secrets
+.env
+config/*.secret.yaml
+
+# AI workspace metadata
+.ai/
+.github/
+.vscode/
+.claude/
+.gemini/
+.gitmessage
+CLAUDE.md
+GEMINI.md
+*.log
+*.html
+*.xml
+*.js
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+.playwright-cli/*
+*.ts
+*.json
+e2e/*
+logs/*
+.cache/*
+reports/*
+_extensions/*
+images/*
+*.pkl
+*.svg
+*.db
+.snakemake/*
+iocache/*
+blog/wiki_blog.html
+blog/wiki_blog.pdf

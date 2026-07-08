@@ -1,0 +1,4 @@
+collection: wiki_code_space
+ignore:
+- stage/**
+- _*.md

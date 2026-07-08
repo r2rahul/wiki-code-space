@@ -1,0 +1,20 @@
+{{ begin_marker }}
+## wiki maintenance
+
+This project maintains a lightweight semantic wiki under {{ wiki_root }}/. The wiki records rationale, business context, decisions, QA constraints, and reusable session lessons that complement code documentation.
+
+When the user types /wiki-refresh, run:
+
+```bash
+python -m wiki_engine.cli update --project {{ project_name }}
+```
+
+Rules:
+- Before broad codebase exploration, read {{ wiki_root }}/index.md.
+- If qmd is installed, prefer qmd query "<question>" -c {{ wiki_root }} --json -n 10 before reading multiple wiki pages.
+- Load the shared maintenance guide at {{ guide_path }} before editing wiki content.
+- For one-time first initialization in an already-developed project, use {{ bootstrap_path }} only when the user invokes /wiki-bootstrap.
+- Keep wiki notes semantic, brief, atomic, and business-relevant. Do not duplicate docstrings or implementation walkthroughs.
+- Never browse {{ wiki_root }}/stage/ unless the user names an exact file path in the conversation.
+- After code, config, or test edits that affect behavior or documentation semantics, run python -m wiki_engine.cli update --project {{ project_name }} once near completion.
+{{ end_marker }}
