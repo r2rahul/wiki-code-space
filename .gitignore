@@ -31,7 +31,7 @@ config/*.secret.yaml
 
 # AI workspace metadata
 .ai/
-.github/
+# .github/ intentionally not ignored — workflows are version-controlled
 .vscode/
 .claude/
 .gemini/
