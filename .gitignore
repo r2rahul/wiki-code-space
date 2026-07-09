@@ -31,7 +31,9 @@ config/*.secret.yaml
 
 # AI workspace metadata
 .ai/
-# .github/ intentionally not ignored — workflows are version-controlled
+# Track only workflows; ignore all other .github subfolders
+.github/*
+!.github/workflows/
 .vscode/
 .claude/
 .gemini/
