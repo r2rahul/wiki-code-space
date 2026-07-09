@@ -5,12 +5,95 @@ the wiki stores semantic context. When a Graphifyy graph exists, the wiki
 bridge metadata can complement its structural context, but Graphifyy is not
 required to maintain the wiki.
 
+## Installation
+
+### Option 1: Using `uv` (Recommended)
+
+Build and install from source with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv sync
+uv run python -m wiki_engine.cli --help
+```
+
+Alternatively, use the provided Makefile:
+
+```bash
+make install
+```
+
+### Option 2: Using `make`
+
+Install dependencies and build the wheel:
+
+```bash
+make build
+```
+
+Then install the generated wheel:
+
+```bash
+pip install dist/wiki_code_space-*.whl
+# or with uv:
+uv pip install dist/wiki_code_space-*.whl
+```
+
+### Option 3: Install pre-built wheel
+
+Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki_code_space/releases), then install:
+
+```bash
+pip install wiki_code_space-0.1.0-py3-none-any.whl
+# or with uv:
+uv pip install wiki_code_space-0.1.0-py3-none-any.whl
+```
+
+After installation, the `wiki-engine` command will be available:
+
+```bash
+wiki-engine --help
+```
+
+## Agent instruction installers
+
+Install wiki maintenance instructions for a project assistant:
+
+```bash
+python -m wiki_engine.cli codex --project code_space
+python -m wiki_engine.cli vscode --project code_space
+python -m wiki_engine.cli claude --project code_space
+python -m wiki_engine.cli gemini --project code_space
+```
+
+Installer commands write assistant instructions plus shared prompt guides under
+`wiki_<project>/templates/` inside the initialized project.
+
+Use the prompt guides by use case:
+
+- `llm_wiki_workflow_guide.md`: normal incremental wiki maintenance during
+  ongoing development.
+- `wiki_first_init_bootstrap.md`: one-time `/wiki-bootstrap "<seed_text>"`
+  workflow when enabling wiki maintenance in a project that already has working
+  code and existing decisions.
+
+This command orchestrates:
+
+1. Wiki scaffold and note updates.
+2. Session note distillation into permanent notes.
+3. Graph-compatible bridge edge extraction from code references.
+4. qmd collection refresh and best-effort embedding when qmd indexing is
+   enabled.
+5. Append-only `log.md` update entry.
+
+
 ## Core command
 
 Run one coherent update call:
 
 ```bash
 python -m wiki_engine.cli update --project code_space
+# or if installed as a package:
+wiki-engine update --project code_space
 ```
 
 ## Initialize existing projects
@@ -55,37 +138,6 @@ Script variant:
 ```bash
 python scripts/s01a_initialize_wiki_workflow.py /path/to/existing-project
 ```
-
-## Agent instruction installers
-
-Install wiki maintenance instructions for a project assistant:
-
-```bash
-python -m wiki_engine.cli codex --project code_space
-python -m wiki_engine.cli vscode --project code_space
-python -m wiki_engine.cli claude --project code_space
-python -m wiki_engine.cli gemini --project code_space
-```
-
-Installer commands write assistant instructions plus shared prompt guides under
-`wiki_<project>/templates/` inside the initialized project.
-
-Use the prompt guides by use case:
-
-- `llm_wiki_workflow_guide.md`: normal incremental wiki maintenance during
-  ongoing development.
-- `wiki_first_init_bootstrap.md`: one-time `/wiki-bootstrap "<seed_text>"`
-  workflow when enabling wiki maintenance in a project that already has working
-  code and existing decisions.
-
-This command orchestrates:
-
-1. Wiki scaffold and note updates.
-2. Session note distillation into permanent notes.
-3. Graph-compatible bridge edge extraction from code references.
-4. qmd collection refresh and best-effort embedding when qmd indexing is
-   enabled.
-5. Append-only `log.md` update entry.
 
 ## qmd indexing and search
 
