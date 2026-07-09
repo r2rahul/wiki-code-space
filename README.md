@@ -3,7 +3,7 @@
 Lightweight Python-first wiki workflow package for analytics projects where
 the wiki stores semantic context. When a Graphifyy graph exists, the wiki
 bridge metadata can complement its structural context, but Graphifyy is not
-required to maintain the wiki.
+required to maintain the wiki. Blog link for motivation behind this repository [Blog Wiki Code Space](https://r2rahul.github.io/r2rahul/posts/2026-07-09-wiki-code-space/)
 
 ## Installation
 
