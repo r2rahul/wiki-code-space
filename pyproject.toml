@@ -16,7 +16,7 @@ include = [
 
 [project]
 name = "wiki-code-space"
-version = "0.1.0"
+version = "0.1.1"
 description = "Wiki workflow engine that bridges code structure and semantic rationale"
 readme = "README.md"
 requires-python = ">=3.11"
