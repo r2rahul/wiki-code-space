@@ -12,7 +12,16 @@ from wiki_engine.updater import WikiUpdater
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build CLI parser with update workflow command."""
+    """Build CLI parser with update workflow command.
+
+    Constructs an argument parser supporting multiple wiki_engine subcommands:
+    update, search, init, migrate, and agent installation (codex, vscode,
+    claude, gemini). Each subcommand may accept optional project name and
+    config path overrides.
+
+    :return: Configured argument parser ready for parse_args().
+    :rtype: argparse.ArgumentParser
+    """
 
     parser = argparse.ArgumentParser(prog="wiki-engine")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -118,7 +127,20 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_update(project_name: str | None, config_path: str) -> int:
-    """Execute update command and print concise result summary."""
+    """Execute update command and print concise result summary.
+
+    Runs the wiki update workflow to regenerate wiki indices and bridge
+    edges. Loads configuration from the specified path, optionally overriding
+    the project name. Prints summary metrics to stdout.
+
+    :param project_name: Optional project name override. If provided, overrides
+                         the project_name from the config file.
+    :type project_name: str | None
+    :param config_path: Relative or absolute path to wiki_engine.yaml config.
+    :type config_path: str
+    :return: Exit code (0 on success, non-zero on error).
+    :rtype: int
+    """
 
     repo_root = Path.cwd()
     updater = WikiUpdater(repo_root=repo_root, config_path=repo_root / config_path)
@@ -137,7 +159,24 @@ def run_search(
     config_path: str,
     result_count: int,
 ) -> int:
-    """Execute qmd-first wiki search and print a concise result."""
+    """Execute qmd-first wiki search and print a concise result.
+
+    Performs semantic wiki search using qmd (if available) or markdown fallback.
+    Formats and prints search results to stdout with file paths, line numbers,
+    and relevance scores.
+
+    :param query_text: Search query string.
+    :type query_text: str
+    :param project_name: Optional project name override. If provided, overrides
+                         the project_name from the config file.
+    :type project_name: str | None
+    :param config_path: Relative or absolute path to wiki_engine.yaml config.
+    :type config_path: str
+    :param result_count: Maximum number of search results to return.
+    :type result_count: int
+    :return: Exit code (0 on success, non-zero on error).
+    :rtype: int
+    """
 
     repo_root = Path.cwd()
     updater = WikiUpdater(repo_root=repo_root, config_path=repo_root / config_path)
@@ -165,7 +204,18 @@ def run_search(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI entrypoint for python -m wiki_engine.cli and script usage."""
+    """CLI entrypoint for python -m wiki_engine.cli and script usage.
+
+    Parses command-line arguments and dispatches to appropriate handler
+    (update, search, init, migrate, or agent installation). Supports
+    programmatic usage via argv parameter or direct CLI invocation.
+
+    :param argv: Optional list of command-line arguments. If None, uses
+                 sys.argv[1:]. Useful for testing and programmatic invocation.
+    :type argv: list[str] | None
+    :return: Exit code (0 on success, non-zero on error).
+    :rtype: int
+    """
 
     parser = build_parser()
     args = parser.parse_args(argv)

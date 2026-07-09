@@ -28,7 +28,19 @@ class AgentInstallResult:
 
 
 def _write_if_changed(file_path: Path, content: str) -> bool:
-    """Write content only when it changes."""
+    """Write content only when it changes.
+
+    Conditionally writes file content to disk, avoiding unnecessary writes
+    when content is unchanged. Creates parent directories as needed.
+
+    :param file_path: Target file path where content will be written.
+    :type file_path: pathlib.Path
+    :param content: File content to write.
+    :type content: str
+    :return: True if file was written (content changed or file did not exist),
+             False if file exists with identical content.
+    :rtype: bool
+    """
 
     file_path.parent.mkdir(parents=True, exist_ok=True)
     if file_path.exists() and file_path.read_text(encoding="utf-8") == content:
@@ -43,7 +55,24 @@ def _merge_marked_block(
     begin_marker: str,
     end_marker: str,
 ) -> str:
-    """Replace or append a deterministic marked instruction block."""
+    """Replace or append a deterministic marked instruction block.
+
+    Merges new content into an existing text block by locating begin and end
+    markers. If markers are found, the content between them is replaced.
+    Otherwise, the new content is appended.
+
+    :param existing_content: Existing file or string content.
+    :type existing_content: str
+    :param block_content: New content to insert or replace.
+    :type block_content: str
+    :param begin_marker: String marker indicating block start (e.g., HTML comment).
+    :type begin_marker: str
+    :param end_marker: String marker indicating block end (e.g., HTML comment).
+    :type end_marker: str
+    :return: Merged content with new block inserted or appended. Content is
+             stripped of trailing whitespace before markers.
+    :rtype: str
+    """
 
     if begin_marker in existing_content and end_marker in existing_content:
         before, rest = existing_content.split(begin_marker, maxsplit=1)
@@ -60,7 +89,28 @@ def install_agent_instructions(
     agent_name: str,
     jinja_env: Environment,
 ) -> AgentInstallResult:
-    """Install one agent instruction file plus shared wiki prompt guides."""
+    """Install one agent instruction file plus shared wiki prompt guides.
+
+    Installs or updates AI agent-specific instruction files and shared wiki
+    maintenance templates. Renders Jinja2 templates and merges instruction
+    blocks into agent configuration files using deterministic markers.
+    Supports multiple agent types: codex, vscode, claude, gemini.
+
+    :param repo_root: Root directory of the repository.
+    :type repo_root: pathlib.Path
+    :param project_name: Name of the project (used in wiki folder paths and
+                         template rendering).
+    :type project_name: str
+    :param agent_name: Target agent identifier (one of 'codex', 'vscode',
+                       'claude', 'gemini').
+    :type agent_name: str
+    :param jinja_env: Jinja2 environment configured with template loaders.
+    :type jinja_env: jinja2.Environment
+    :return: Installation result containing agent name, file paths updated,
+             and list of changed files.
+    :rtype: AgentInstallResult
+    :raises ValueError: If agent_name is not in AGENT_INSTRUCTION_PATHS.
+    """
 
     if agent_name not in AGENT_INSTRUCTION_PATHS:
         raise ValueError(f"Unsupported agent: {agent_name}")

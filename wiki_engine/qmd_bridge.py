@@ -15,14 +15,37 @@ LOGGER = logging.getLogger(__name__)
 
 
 def _qmd_collection_already_exists(process: subprocess.CompletedProcess[str]) -> bool:
-    """Return True when qmd reports an existing collection as a command failure."""
+    """Return True when qmd reports an existing collection as a command failure.
+
+    Helper to detect idempotency: qmd collection add fails with a known message
+    when the collection already exists. This distinguishes transient failures
+    from successful idempotent registration.
+
+    Args:
+        process (subprocess.CompletedProcess[str]): Completed qmd subprocess result.
+
+    Returns:
+        bool: True if stdout/stderr contain both "already exists" and "collection"
+            (case-insensitive), False otherwise.
+    """
 
     combined_output = f"{process.stderr}\n{process.stdout}".casefold()
     return "already exists" in combined_output and "collection" in combined_output
 
 
 def assert_non_stage_path(file_path: Path, exclude_paths: Iterable[str]) -> None:
-    """Raise when a caller attempts to index a path from excluded stage folders."""
+    """Raise when a caller attempts to index a path from excluded stage folders.
+
+    Enforces the invariant that stage paths are never indexed. Used as a guard
+    in public qmd functions to prevent accidental exposure of draft/confidential content.
+
+    Args:
+        file_path (Path): File path to validate.
+        exclude_paths (Iterable[str]): Glob patterns for excluded paths (e.g., ["stage/**"]).
+
+    Raises:
+        ValueError: If file_path matches any exclude pattern.
+    """
 
     if is_excluded_path(file_path=file_path, exclude_paths=exclude_paths):
         raise ValueError(f"Refusing stage path for qmd operation: {file_path}")
@@ -33,7 +56,18 @@ def build_qmd_query_command(
     qmd_collection: str,
     result_count: int = 10,
 ) -> list[str]:
-    """Build qmd query command with required collection and output options."""
+    """Build qmd query command with required collection and output options.
+
+    Constructs a shell command list for the qmd CLI query subcommand.
+
+    Args:
+        query_text (str): Search query string.
+        qmd_collection (str): Registered qmd collection name.
+        result_count (int): Maximum results to return. Defaults to 10.
+
+    Returns:
+        list[str]: Command list for subprocess.run() [qmd, query, ...].
+    """
 
     return [
         "qmd",
@@ -51,7 +85,17 @@ def build_qmd_collection_add_command(
     wiki_root: Path,
     qmd_collection: str,
 ) -> list[str]:
-    """Build qmd collection registration command for a wiki folder."""
+    """Build qmd collection registration command for a wiki folder.
+
+    Constructs a shell command list for the qmd CLI collection add subcommand.
+
+    Args:
+        wiki_root (Path): Absolute path to wiki root directory to register.
+        qmd_collection (str): Canonical name for the collection in qmd.
+
+    Returns:
+        list[str]: Command list for subprocess.run() [qmd, collection, add, ...].
+    """
 
     return [
         "qmd",
@@ -64,7 +108,17 @@ def build_qmd_collection_add_command(
 
 
 def build_qmd_embed_command(qmd_collection: str) -> list[str]:
-    """Build qmd embedding refresh command for a registered collection."""
+    """Build qmd embedding refresh command for a registered collection.
+
+    Constructs a shell command list for the qmd CLI embed subcommand to refresh
+    semantic embeddings for all documents in a collection.
+
+    Args:
+        qmd_collection (str): Canonical name for the collection in qmd.
+
+    Returns:
+        list[str]: Command list for subprocess.run() [qmd, embed, -c, collection].
+    """
 
     return [
         "qmd",
@@ -80,7 +134,25 @@ def refresh_qmd_index(
     exclude_paths: Iterable[str],
     qmd_enabled: bool = True,
 ) -> dict[str, object]:
-    """Refresh qmd collection index when qmd CLI is available."""
+    """Refresh qmd collection index when qmd CLI is available.
+
+    Orchestrates qmd collection registration and embedding refresh. Gracefully
+    degrades to fallback if qmd is unavailable or disabled. Logs warnings for
+    non-critical failures (embedding refresh) while attempting embedding refresh.
+
+    Args:
+        wiki_root (Path): Absolute path to wiki root directory.
+        qmd_collection (str): Canonical collection name.
+        exclude_paths (Iterable[str]): Glob patterns to exclude from indexing.
+        qmd_enabled (bool): Whether to attempt qmd operations. Defaults to True.
+
+    Returns:
+        dict[str, object]: Status payload with 'status' key:
+            - "disabled": qmd disabled by config
+            - "fallback": qmd unavailable or registration failed
+            - "ok": registration successful (embedding refresh may have failed)
+            Includes detailed return codes and stderr/stdout for debugging.
+    """
 
     if not qmd_enabled:
         return {
@@ -177,7 +249,24 @@ def search_wiki(
     result_count: int = 10,
     qmd_enabled: bool = True,
 ) -> dict[str, Any]:
-    """Search wiki content with qmd first and deterministic markdown fallback."""
+    """Search wiki content with qmd first and deterministic markdown fallback.
+
+    Attempts semantic search via qmd; if qmd fails or is disabled, falls back to
+    deterministic markdown text matching. Always returns results from one backend.
+
+    Args:
+        query_text (str): Search query string.
+        wiki_root (Path): Absolute path to wiki root directory.
+        qmd_collection (str): Canonical collection name.
+        exclude_paths (Iterable[str]): Glob patterns to exclude from fallback search.
+        result_count (int): Maximum results to return. Defaults to 10.
+        qmd_enabled (bool): Whether to attempt qmd search. Defaults to True.
+
+    Returns:
+        dict[str, Any]: Search result with 'status' key ("ok" or "fallback"),
+            'backend' key, and 'results' list. Each result includes path,
+            line number, match score, and snippet text.
+    """
 
     if qmd_enabled:
         qmd_result = _search_wiki_with_qmd(
@@ -216,7 +305,24 @@ def search_wiki_markdown(
     exclude_paths: Iterable[str],
     result_count: int = 10,
 ) -> list[dict[str, Any]]:
-    """Search markdown files without reading excluded wiki paths."""
+    """Search markdown files without reading excluded wiki paths.
+
+    Performs deterministic case-insensitive text search across all .md files
+    in wiki_root, respecting exclude patterns (e.g., stage/**). Results are
+    scored by match frequency per line and sorted by score descending,
+    then path ascending.
+
+    Args:
+        query_text (str): Search query string (case-insensitive).
+        wiki_root (Path): Absolute path to wiki root directory.
+        exclude_paths (Iterable[str]): Glob patterns to exclude from search.
+        result_count (int): Maximum results to return. Defaults to 10.
+
+    Returns:
+        list[dict[str, Any]]: Sorted list of matches (limited to result_count).
+            Each match dict contains: path (relative POSIX), line (line number),
+            score (match frequency), snippet (matched line text).
+    """
 
     query_normalized = query_text.casefold()
     results: list[dict[str, Any]] = []
@@ -260,7 +366,22 @@ def _search_wiki_with_qmd(
     qmd_collection: str,
     result_count: int,
 ) -> dict[str, Any]:
-    """Run qmd query and normalize success/fallback metadata."""
+    """Run qmd query and normalize success/fallback metadata.
+
+    Executes qmd query command and parses JSON results. Returns a status dict
+    indicating success or fallback reason. Handles JSON parsing errors gracefully.
+
+    Args:
+        query_text (str): Search query string.
+        qmd_collection (str): Canonical collection name.
+        result_count (int): Maximum results to return.
+
+    Returns:
+        dict[str, Any]: Status dict with 'status' key:
+            - "ok": qmd query succeeded; 'results' contains parsed JSON
+            - "fallback": qmd unavailable or failed; includes stderr/stdout
+            Also includes backend, collection, and return_code fields.
+    """
 
     qmd_bin = shutil.which("qmd")
     if qmd_bin is None:
