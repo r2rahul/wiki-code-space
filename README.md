@@ -38,12 +38,12 @@ uv pip install dist/wiki_code_space-*.whl
 
 ### Option 3: Install pre-built wheel
 
-Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki_code_space/releases), then install:
+Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki-code-space/releases), then install:
 
 ```bash
 pip install wiki_code_space-0.3.0-py3-none-any.whl
 # or with uv:
-uv pip install wiki_code_space-0.1.0-py3-none-any.whl
+uv pip install wiki_code_space-0.3.0-py3-none-any.whl
 ```
 
 After installation, the `wiki-engine` command will be available:
@@ -59,35 +59,171 @@ larger wikis.
 
 ## Agent Skill installers
 
-Initialization and refresh do not change harness prompts or install skills.
-Register the two project-specific Agent Skills only for the harness you use:
+The base package is CLI-only. `init` and `update` never install Agent Skills or
+modify assistant instruction files. After initializing a project, explicitly
+register wiki support for the harness used in that project:
 
 ```bash
-python -m wiki_engine.cli install copilot --project code_space
-python -m wiki_engine.cli install codex --project code_space
-python -m wiki_engine.cli install claude --project code_space
-python -m wiki_engine.cli install gemini --project code_space
+cd /path/to/project
+wiki-engine install copilot
+wiki-engine install codex
+wiki-engine install claude
+wiki-engine install gemini
 ```
 
-Omitting the harness defaults to a project-level Gemini installation:
+Each command installs two project-specific skills and adds a small, marked
+section to the selected harness instruction file. Existing handwritten content
+is preserved, repeated installation is idempotent, and legacy unsuffixed
+`wiki-engine` blocks are migrated automatically.
+
+### Supported harnesses and project paths
+
+| Harness | Instruction file | Skill directory |
+| --- | --- | --- |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.agents/skills/` |
+| Codex | `AGENTS.md` | `.agents/skills/` |
+| Claude | `CLAUDE.md` | `.claude/skills/` |
+| Gemini | `GEMINI.md` | `.gemini/skills/` |
+
+Installation is project-scoped by default. Omitting the harness selects Gemini:
 
 ```bash
-python -m wiki_engine.cli install --project code_space
+wiki-engine install
 ```
 
-Pass `--user` to write only user-level harness files and leave the project
-untouched:
+Use `--project` only to override the `project_name` loaded from
+`config/wiki_engine.yaml`:
 
 ```bash
-python -m wiki_engine.cli install codex --project code_space --user
+wiki-engine install codex --project demand_forecasting
 ```
 
-For `code_space`, installation exposes `/wiki-ref-code-space` to refresh the
-wiki and `/wiki-query-code-space` to search it. Longer project names use their
-first two and last two sanitized words. The generated `SKILL.md` files follow
-the Agent Skills specification and the harness prompt explains when to query
-for rationale, architecture, decisions, business context, configuration
-semantics, QA constraints, glossary terms, and reusable failure lessons.
+### User-level installation
+
+Pass `--user` to write only beneath the user profile. No project instruction or
+skill files are changed:
+
+```bash
+wiki-engine install codex --user
+```
+
+| Harness | User instruction file | User skill directory |
+| --- | --- | --- |
+| GitHub Copilot | `~/.copilot/copilot-instructions.md` | `~/.agents/skills/` |
+| Codex | `~/.codex/AGENTS.md` | `~/.codex/skills/` |
+| Claude | `~/.claude/CLAUDE.md` | `~/.claude/skills/` |
+| Gemini | `~/.gemini/GEMINI.md` | `~/.gemini/skills/` |
+
+User-level skills are still project-specific, so run the command from a project
+containing `config/wiki_engine.yaml`, or provide `--config` and `--project`.
+
+### Generated commands
+
+For a project named `code_space`, installation exposes:
+
+- `/wiki-ref-code-space` — updates the semantic wiki after code,
+  configuration, test, architecture, or business-behavior changes.
+- `/wiki-query-code-space` — searches the wiki for rationale, architecture,
+  decisions, configuration semantics, business context, QA constraints,
+  glossary terms, and reusable failure lessons.
+
+Command names use lowercase kebab-case. Projects with four or fewer words use
+all words; longer names use the first two and last two words. Special characters
+are removed, and names are capped at the Agent Skills 64-character limit.
+
+## Recommended workflow
+
+Initialize once, install only the harness you use, then query and refresh the
+wiki as part of normal development:
+
+```bash
+# 1. Create config and the wiki scaffold in an existing project.
+wiki-engine init /path/to/project
+
+# 2. Run subsequent commands from that project root.
+cd /path/to/project
+
+# 3. Register one harness. Gemini is the default when omitted.
+wiki-engine install codex
+
+# 4. Search durable project knowledge before broad code exploration.
+wiki-engine search "why is volatility_penalty capped" -n 10
+
+# 5. Refresh semantic artifacts after behavior or documentation changes.
+wiki-engine update
+```
+
+The equivalent module form is available for every command:
+
+```bash
+python -m wiki_engine.cli install codex
+python -m wiki_engine.cli search "why is volatility_penalty capped" -n 10
+python -m wiki_engine.cli update
+```
+
+## Initialize an existing project
+
+Initialize any existing project directory:
+
+```bash
+wiki-engine init /path/to/existing-project
+```
+
+`init` normalizes the directory name into a project identifier unless
+`--project` is supplied. It creates:
+
+- `config/wiki_engine.yaml`
+- `wiki_<project>/index.md`
+- `wiki_<project>/log.md`
+- `wiki_<project>/qmd.yml`
+- the wiki architecture, decisions, QA, sessions, glossary, and protected
+  `stage/` directories
+
+It does not install Agent Skills, modify harness prompts, or create placeholder
+knowledge notes. Semantic notes are added later only when source-grounded
+project context exists.
+
+For a newly created configuration, qmd indexing is enabled by default. Make the
+choice explicit with:
+
+```bash
+wiki-engine init /path/to/existing-project --qmd-index
+wiki-engine init /path/to/existing-project --no-qmd-index
+```
+
+Override the inferred project name or config location when needed:
+
+```bash
+wiki-engine init /path/to/existing-project \
+  --project demand_forecasting \
+  --config config/wiki_engine.yaml
+```
+
+## Search the wiki
+
+Use the wrapper command instead of calling qmd directly. It automatically uses
+qmd when available and healthy, then falls back to deterministic Markdown
+search while preserving configured exclusions:
+
+```bash
+wiki-engine search "why volatility_penalty changed" --project code_space -n 10
+```
+
+The output reports `backend=qmd` or `backend=markdown`. Markdown results include
+the relative path, first matching line, relevance score, and snippet. The
+fallback is intended for wikis of roughly 100 Markdown files or fewer; install
+qmd for larger collections.
+
+The `stage/` subtree is excluded from both qmd indexing and Markdown fallback
+search. Agents should inspect it only when the user names an exact stage path.
+
+## Update the wiki
+
+Run one coherent update after changes that affect durable project semantics:
+
+```bash
+wiki-engine update --project code_space
+```
 
 The update command orchestrates:
 
@@ -98,78 +234,19 @@ The update command orchestrates:
    enabled.
 5. Append-only `log.md` update entry.
 
+## qmd indexing and search
 
-## Core command
-
-Run one coherent update call:
-
-```bash
-python -m wiki_engine.cli update --project code_space
-# or if installed as a package:
-wiki-engine update --project code_space
-```
-
-## Initialize existing projects
-
-Initialize any existing project folder with this wiki workflow:
-
-```bash
-python -m wiki_engine.cli init /path/to/existing-project
-```
-
-Init creates the wiki folders, `index.md`, `log.md`, and `qmd.yml`. It does not
-install Agent Skills, modify harness prompts, or create example notes under
-`sessions/`, `qa/`, `glossary/`, `architecture/`, or `decisions/`; those notes
-are created later only when source-grounded project context exists.
-
-qmd indexing is enabled by default but remains optional. When qmd is installed,
-init/update register the wiki folder as a collection, then try embeddings as a
-non-blocking acceleration:
+qmd is an optional accelerator, not a Python package dependency. When enabled
+and installed, `init` and `update` register the wiki collection and attempt
+embedding refresh as a non-blocking optimization:
 
 ```bash
 qmd collection add wiki_code_space --name wiki_code_space
 qmd embed -c wiki_code_space
 ```
 
-If embeddings fail because no embedding model is available, qmd keyword search
-and the markdown fallback remain available. Use the explicit flags when you want
-to make the indexing choice visible in automation:
-
-```bash
-python -m wiki_engine.cli init /path/to/existing-project --qmd-index
-python -m wiki_engine.cli init /path/to/existing-project --no-qmd-index
-```
-
-Optional override for project name and config path:
-
-```bash
-python -m wiki_engine.cli init /path/to/existing-project --project demand_forecasting --config config/wiki_engine.yaml
-```
-
-Script variant:
-
-```bash
-python scripts/s01a_initialize_wiki_workflow.py /path/to/existing-project
-```
-
-## qmd indexing and search
-
-qmd is the default accelerator for wiki indexing and search. If qmd is missing
-or unhealthy, wiki_engine logs a warning and falls back to deterministic
-markdown search over the wiki, while preserving the stage-folder exclusions.
-
-Use collection-qualified queries:
-
-```bash
-qmd query "why volatility_penalty changed" -c wiki_code_space --json -n 10
-```
-
-Or use the wiki_engine search command, which applies the same qmd-first
-fallback behavior:
-
-```bash
-python -m wiki_engine.cli search "why volatility_penalty changed" --project code_space -n 10
-```
+If qmd is missing, collection registration fails, or embeddings are unavailable,
+the CLI reports the fallback and continues. Search remains usable without qmd.
 
 ## Graphify integration
 
