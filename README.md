@@ -166,6 +166,66 @@ wiki_wspace init /path/to/existing-project \
   --llm claude
 ```
 
+## Wiki directory structure
+
+Each initialized project has one `wiki_<project>/` directory. The compact
+project name is produced by the naming rule described above.
+
+```text
+wiki_<project>/
+├── index.md
+├── architecture/
+├── decisions/
+├── qa/
+├── sessions/
+├── glossary/
+├── stage/
+│   ├── plan/
+│   └── spec/
+├── log.md
+├── qmd.yml
+└── .qmd/
+```
+
+Use the folders as follows:
+
+- `index.md` is the starting point. Read it first for the wiki's scope,
+  navigation rules, and protected-folder guidance.
+- `architecture/` contains durable system context: configuration behavior,
+  data flows, component boundaries, and cross-module contracts.
+- `decisions/` contains accepted architectural decisions and their tradeoffs.
+  Decision records use names such as `adr-YYYYMMDD-topic.md`.
+- `qa/` contains expected behavior and regression constraints. Use business QA
+  for stakeholder-visible outcomes and technical QA for interfaces and
+  invariants.
+- `sessions/` contains reusable lessons from a failed approach that led to a
+  corrected implementation. It is not a general activity log.
+- `glossary/` defines project-specific terms, abbreviations, and overloaded
+  language.
+- `stage/` contains temporary plans and specifications. It is excluded from
+  search and indexing. Do not browse it unless an exact stage path is explicitly
+  requested.
+- `log.md` is the append-only update history maintained by `wiki_wspace`.
+- `qmd.yml` and `.qmd/` contain qmd collection configuration and local index
+  state. They are maintained by the update workflow and normally should not be
+  edited manually.
+
+### Finding relevant information
+
+1. Start with `wiki_<project>/index.md` when entering an unfamiliar project.
+2. Run a focused search instead of reading every wiki file:
+
+   ```bash
+   wiki_wspace search "why was the retry limit changed" -n 10
+   ```
+
+3. Open only the highest-scoring results and follow their links to related
+   notes or source files.
+4. If search has no answer, use the folder purpose above to choose where the
+   missing knowledge belongs. Add only source-grounded, durable information.
+5. Run `wiki_wspace update` after code, configuration, tests, or documentation
+   change project semantics.
+
 ## Search the wiki
 
 Use the wrapper command instead of calling qmd directly. It automatically uses
