@@ -8,7 +8,7 @@ import shutil
 import sys
 
 from wiki_engine.agent_install import install_agent_instructions
-from wiki_engine.migration import ensure_initialization_config, initialize_project
+from wiki_engine.migration import initialize_project
 from wiki_engine.updater import WikiUpdater
 
 
@@ -81,6 +81,13 @@ def build_parser() -> argparse.ArgumentParser:
         default="config/wiki_engine.yaml",
         help="Relative config path in target project",
     )
+    init_parser.add_argument(
+        "--llm",
+        dest="agent_name",
+        choices=("copilot", "codex", "claude", "gemini"),
+        default="gemini",
+        help="Agent harness whose project skills should be installed (default: gemini)",
+    )
     init_qmd_group = init_parser.add_mutually_exclusive_group()
     init_qmd_group.add_argument(
         "--qmd-index",
@@ -107,7 +114,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     install_parser = subparsers.add_parser(
         "install",
-        help="Install wiki skills for an agent harness",
+        help=argparse.SUPPRESS,
     )
     install_parser.add_argument(
         "agent_name",
@@ -134,6 +141,54 @@ def build_parser() -> argparse.ArgumentParser:
         help="Install only at user scope instead of modifying this project",
     )
     return parser
+
+
+def run_initialize(
+    target_dir: str,
+    project_name: str | None,
+    config_path: str,
+    qmd_enabled: bool,
+    agent_name: str,
+) -> int:
+    """Initialize a project wiki and install one harness's project skills."""
+
+    result = initialize_project(
+        target_dir=target_dir,
+        project_name=project_name,
+        config_relpath=config_path,
+        qmd_enabled=qmd_enabled,
+    )
+    updater = WikiUpdater(
+        repo_root=result.project_root,
+        config_path=result.config_path,
+    )
+    agent_result = install_agent_instructions(
+        repo_root=result.project_root,
+        project_name=result.project_name,
+        agent_name=agent_name,
+        jinja_env=updater.jinja_env,
+    )
+
+    print("wiki_engine init completed")
+    print(f"project_root={result.project_root}")
+    print(f"project_name={result.project_name}")
+    print(f"config_path={result.config_path}")
+    print(f"llm={agent_result.agent_name}")
+    print(f"agent={agent_result.agent_name}")
+    print(f"instruction_path={agent_result.instruction_path}")
+    print(f"refresh_command={agent_result.refresh_command}")
+    print(f"query_command={agent_result.query_command}")
+    for skill_path in agent_result.skill_paths:
+        print(f"skill_path={skill_path}")
+    print(f"wiki_changed_files={len(result.update_result.changed_files)}")
+    print(f"skill_changed_files={len(agent_result.changed_files)}")
+    print(
+        f"bridge_edges={result.update_result.graph_result.get('bridge_edge_count', 0)}"
+    )
+    print(f"qmd_status={result.update_result.qmd_result.get('status', 'unknown')}")
+    if result.update_result.qmd_result.get("reason") == "qmd CLI not installed":
+        print_qmd_fallback_notice()
+    return 0
 
 
 def run_update(project_name: str | None, config_path: str) -> int:
@@ -257,7 +312,16 @@ def main(argv: list[str] | None = None) -> int:
             result_count=args.result_count,
         )
 
-    if args.command in {"init", "migrate"}:
+    if args.command == "init":
+        return run_initialize(
+            target_dir=args.target_dir,
+            project_name=args.project_name,
+            config_path=args.config_path,
+            qmd_enabled=args.qmd_enabled,
+            agent_name=args.agent_name,
+        )
+
+    if args.command == "migrate":
         result = initialize_project(
             target_dir=args.target_dir,
             project_name=args.project_name,
@@ -279,23 +343,22 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "install":
+        if not args.user:
+            return run_initialize(
+                target_dir=str(Path.cwd()),
+                project_name=args.project_name,
+                config_path=args.config_path,
+                qmd_enabled=True,
+                agent_name=args.agent_name,
+            )
+
         repo_root = Path.cwd()
         config_path = repo_root / args.config_path
         config_created = not config_path.exists()
         if config_created:
-            if args.user:
-                parser.error(
-                    "--user installation requires an existing project config; "
-                    "run 'wiki-engine init' first"
-                )
-            inferred_project_name = args.project_name or repo_root.name
-            normalized_project_name = WikiUpdater.normalize_project_name(
-                inferred_project_name
-            )
-            config_path = ensure_initialization_config(
-                project_root=repo_root,
-                project_name=normalized_project_name,
-                config_relpath=args.config_path,
+            parser.error(
+                "--user installation requires an existing project config; "
+                "run 'wiki-engine init' first"
             )
         updater = WikiUpdater(
             repo_root=repo_root,

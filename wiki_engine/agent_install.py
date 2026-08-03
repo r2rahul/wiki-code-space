@@ -94,7 +94,8 @@ def _merge_marked_block(
     if begin_marker in existing_content and end_marker in existing_content:
         before, rest = existing_content.split(begin_marker, maxsplit=1)
         _, after = rest.split(end_marker, maxsplit=1)
-        return f"{before.rstrip()}\n\n{block_content.strip()}\n{after.lstrip()}"
+        prefix = f"{before.rstrip()}\n\n" if before.rstrip() else ""
+        return f"{prefix}{block_content.strip()}\n{after.lstrip()}"
 
     separator = "\n\n" if existing_content.rstrip() else ""
     return f"{existing_content.rstrip()}{separator}{block_content.strip()}\n"

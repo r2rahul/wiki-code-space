@@ -58,6 +58,28 @@ def test_initialize_project_can_disable_qmd_indexing(tmp_path: Path) -> None:
     assert result.update_result.qmd_result["status"] == "disabled"
 
 
+def test_initialize_project_reuses_name_from_existing_config(tmp_path: Path) -> None:
+    """An existing config should remain authoritative when no override is given."""
+
+    project_root = tmp_path / "folder-name"
+    project_root.mkdir(parents=True)
+    first_result = initialize_project(
+        target_dir=str(project_root),
+        project_name="Demand Forecasting",
+        qmd_enabled=False,
+    )
+
+    second_result = initialize_project(
+        target_dir=str(project_root),
+        qmd_enabled=False,
+    )
+
+    assert first_result.project_name == "demand_forecasting"
+    assert second_result.project_name == "demand_forecasting"
+    assert (project_root / "wiki_demand_forecasting" / "index.md").exists()
+    assert not (project_root / "wiki_folder_name").exists()
+
+
 def test_migrate_project_alias_still_initializes(tmp_path: Path) -> None:
     """The legacy migrate API should remain a compatible alias."""
 

@@ -29,9 +29,9 @@ Create `sessions/YYYY-MM-DD-<topic-slug>.md` only when a failed approach led to
 a corrected implementation or a reusable constraint was discovered.
 
 ## Agent Access
-The base installation is CLI-only. Run `python -m wiki_engine.cli install
-<copilot|codex|claude|gemini>` to register project-level refresh and query
-skills for one harness. Use `--user` for a user-level-only installation.
+Run `wiki-engine init <project-path> --llm <harness>` to initialize the wiki and
+register project-level refresh and query skills in one operation. Supported
+harnesses are Copilot, Codex, Claude, and Gemini; Gemini is the default.
 
 ## Glossary
 Create `glossary/<term-slug>.md` only for project-specific terms,

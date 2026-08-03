@@ -41,9 +41,9 @@ uv pip install dist/wiki_code_space-*.whl
 Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki-code-space/releases), then install:
 
 ```bash
-pip install wiki_code_space-0.3.1-py3-none-any.whl
+pip install wiki_code_space-0.4.0-py3-none-any.whl
 # or with uv:
-uv pip install wiki_code_space-0.3.1-py3-none-any.whl
+uv pip install wiki_code_space-0.4.0-py3-none-any.whl
 ```
 
 After installation, both `wiki-engine` and its underscore alias `wiki_engine`
@@ -59,28 +59,36 @@ wiki_engine uses deterministic index-based Markdown search. That fallback is a
 good fit for wikis with roughly 100 Markdown files or fewer; install qmd for
 larger wikis.
 
-## Agent Skill installers
+## Initialize a project and its Agent Skills
 
-The base package is CLI-only. `init` and `update` never install Agent Skills or
-modify assistant instruction files. Run the installer from a project root to
-register wiki support for the harness used in that project:
+One command initializes the wiki workflow and the selected agent harness in an
+existing project directory:
 
 ```bash
-cd /path/to/project
-wiki-engine install copilot
-wiki-engine install codex
-wiki-engine install claude
-wiki-engine install gemini
+wiki-engine init /path/to/existing-project --qmd-index --llm gemini
 ```
 
-Each command installs two project-specific skills and adds a small, marked
-section to the selected harness instruction file. Existing handwritten content
-is preserved, repeated installation is idempotent, and legacy unsuffixed
-`wiki-engine` blocks are migrated automatically. If
-`config/wiki_engine.yaml` does not exist, installation creates it in that
-project root using the normalized directory name (or `--project` value).
+Gemini is the default, so `--llm gemini` can be omitted:
 
-### Supported harnesses and project paths
+```bash
+wiki-engine init /path/to/existing-project --qmd-index
+```
+
+Use `--llm` to select any supported harness:
+
+```bash
+wiki-engine init /path/to/existing-project --llm copilot
+wiki-engine init /path/to/existing-project --llm codex
+wiki-engine init /path/to/existing-project --llm claude
+wiki-engine init /path/to/existing-project --llm gemini
+```
+
+Initialization creates the configuration and wiki scaffold, installs two
+project-specific skills, and adds a marked section to the selected harness
+instruction file. Existing handwritten instructions are preserved and skill
+installation is idempotent.
+
+### Supported harness paths
 
 | Harness | Instruction file | Skill directory |
 | --- | --- | --- |
@@ -88,38 +96,6 @@ project root using the normalized directory name (or `--project` value).
 | Codex | `AGENTS.md` | `.agents/skills/` |
 | Claude | `CLAUDE.md` | `.claude/skills/` |
 | Gemini | `GEMINI.md` | `.gemini/skills/` |
-
-Installation is project-scoped by default. Omitting the harness selects Gemini:
-
-```bash
-wiki-engine install
-```
-
-Use `--project` only to override the `project_name` loaded from
-`config/wiki_engine.yaml`:
-
-```bash
-wiki-engine install codex --project demand_forecasting
-```
-
-### User-level installation
-
-Pass `--user` to write only beneath the user profile. No project instruction or
-skill files are changed:
-
-```bash
-wiki-engine install codex --user
-```
-
-| Harness | User instruction file | User skill directory |
-| --- | --- | --- |
-| GitHub Copilot | `~/.copilot/copilot-instructions.md` | `~/.agents/skills/` |
-| Codex | `~/.codex/AGENTS.md` | `~/.codex/skills/` |
-| Claude | `~/.claude/CLAUDE.md` | `~/.claude/skills/` |
-| Gemini | `~/.gemini/GEMINI.md` | `~/.gemini/skills/` |
-
-User-level skills are still project-specific, so run the command from a project
-containing `config/wiki_engine.yaml`, or provide `--config` and `--project`.
 
 ### Generated commands
 
@@ -137,45 +113,34 @@ are removed, and names are capped at the Agent Skills 64-character limit.
 
 ## Recommended workflow
 
-Install the harness you use, then query and refresh the wiki as part of normal
-development. A separate `init` step is optional because `install` creates a
-missing project configuration:
+Initialize the project and chosen harness, then query and refresh the wiki as
+part of normal development:
 
 ```bash
-# 1. Run commands from the project root.
+# 1. Create the wiki scaffold and Codex skills in the target project.
+wiki-engine init /path/to/project --qmd-index --llm codex
+
+# 2. Run subsequent commands from that project root.
 cd /path/to/project
 
-# 2. Register one harness. Gemini is the default when omitted.
-wiki-engine install codex
-
-# 3. Create the wiki scaffold immediately (otherwise the first refresh does it).
-wiki-engine update
-
-# 4. Search durable project knowledge before broad code exploration.
+# 3. Search durable project knowledge before broad code exploration.
 wiki-engine search "why is volatility_penalty capped" -n 10
 
-# 5. Refresh semantic artifacts after behavior or documentation changes.
+# 4. Refresh semantic artifacts after behavior or documentation changes.
 wiki-engine update
 ```
 
 The equivalent module form is available for every command:
 
 ```bash
-python -m wiki_engine.cli install codex
-python -m wiki_engine.cli search "why is volatility_penalty capped" -n 10
-python -m wiki_engine.cli update
+python -m wiki_engine init /path/to/project --qmd-index --llm codex
+python -m wiki_engine search "why is volatility_penalty capped" -n 10
+python -m wiki_engine update
 ```
 
 ## Initialize an existing project
 
-Initialize any existing project directory:
-
-```bash
-wiki-engine init /path/to/existing-project
-```
-
-`init` normalizes the directory name into a project identifier unless
-`--project` is supplied. It creates:
+The unified command creates:
 
 - `config/wiki_engine.yaml`
 - `wiki_<project>/index.md`
@@ -183,10 +148,13 @@ wiki-engine init /path/to/existing-project
 - `wiki_<project>/qmd.yml`
 - the wiki architecture, decisions, QA, sessions, glossary, and protected
   `stage/` directories
+- the selected harness instruction file
+- the refresh and query Agent Skills, including the refresh workflow reference
 
-It does not install Agent Skills, modify harness prompts, or create placeholder
-knowledge notes. Semantic notes are added later only when source-grounded
-project context exists.
+For a new config, the directory name is normalized into a project identifier
+unless `--project` is supplied. Repeated initialization reuses the name in the
+existing config. Initialization does not create placeholder knowledge notes;
+semantic notes are added later only when source-grounded context exists.
 
 For a newly created configuration, qmd indexing is enabled by default. Make the
 choice explicit with:
@@ -201,8 +169,14 @@ Override the inferred project name or config location when needed:
 ```bash
 wiki-engine init /path/to/existing-project \
   --project demand_forecasting \
-  --config config/wiki_engine.yaml
+  --config config/wiki_engine.yaml \
+  --llm claude
 ```
+
+The former `wiki-engine install <harness>` command remains as a compatibility
+alias for existing automation. New workflows should use `init --llm` so the
+target directory, wiki scaffold, configuration, and skills are initialized
+together.
 
 ## Search the wiki
 

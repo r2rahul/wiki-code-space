@@ -148,6 +148,31 @@ def test_install_replaces_its_marked_block_without_removing_handwritten_text(
     assert second.changed_files == []
 
 
+def test_install_is_idempotent_for_new_instruction_file(tmp_path: Path) -> None:
+    """A generated-only harness prompt should not gain leading blank lines."""
+
+    config_path = write_config(tmp_path)
+    updater = WikiUpdater(repo_root=tmp_path, config_path=config_path)
+
+    first = install_agent_instructions(
+        repo_root=tmp_path,
+        project_name="code_space",
+        agent_name="codex",
+        jinja_env=updater.jinja_env,
+    )
+    second = install_agent_instructions(
+        repo_root=tmp_path,
+        project_name="code_space",
+        agent_name="codex",
+        jinja_env=updater.jinja_env,
+    )
+
+    instruction_text = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert first.changed_files
+    assert second.changed_files == []
+    assert instruction_text.startswith("<!-- wiki-engine:code-space:start -->")
+
+
 def test_install_migrates_legacy_unsuffixed_instruction_marker(tmp_path: Path) -> None:
     """Old /wiki-refresh prompt blocks should be replaced, not duplicated."""
 

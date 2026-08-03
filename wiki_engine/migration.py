@@ -114,7 +114,8 @@ def initialize_project(
 
     Args:
         target_dir (str): Path to existing project directory (absolute or relative).
-        project_name (str | None): Explicit project name. If None, uses directory name.
+        project_name (str | None): Explicit project name. If None, uses the name
+            from an existing config or the directory name for a new config.
         config_relpath (str): Relative path to config file. Defaults to
             "config/wiki_engine.yaml".
         qmd_enabled (bool): Enable qmd in generated config. Defaults to True.
@@ -132,15 +133,20 @@ def initialize_project(
         raise ValueError(f"Target directory does not exist: {project_root}")
 
     inferred_name = project_name or project_root.name
-    normalized_name = WikiUpdater.normalize_project_name(inferred_name)
+    initial_name = WikiUpdater.normalize_project_name(inferred_name)
     config_path = ensure_initialization_config(
         project_root=project_root,
-        project_name=normalized_name,
+        project_name=initial_name,
         config_relpath=config_relpath,
         qmd_enabled=qmd_enabled,
     )
 
     updater = WikiUpdater(repo_root=project_root, config_path=config_path)
+    normalized_name = (
+        initial_name
+        if project_name is not None
+        else WikiUpdater.normalize_project_name(updater.config.project_name)
+    )
     update_result = updater.update(project_override=normalized_name)
 
     return InitializationResult(
