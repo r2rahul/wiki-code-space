@@ -16,7 +16,7 @@ include = [
 
 [project]
 name = "wiki-code-space"
-version = "0.3.0"
+version = "0.3.1"
 description = "Wiki workflow engine that bridges code structure and semantic rationale"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,6 +27,7 @@ dependencies = [
 
 [project.scripts]
 wiki-engine = "wiki_engine.cli:main"
+wiki_engine = "wiki_engine.cli:main"
 
 [dependency-groups]
 dev = [

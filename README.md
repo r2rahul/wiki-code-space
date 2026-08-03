@@ -41,15 +41,17 @@ uv pip install dist/wiki_code_space-*.whl
 Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki-code-space/releases), then install:
 
 ```bash
-pip install wiki_code_space-0.3.0-py3-none-any.whl
+pip install wiki_code_space-0.3.1-py3-none-any.whl
 # or with uv:
-uv pip install wiki_code_space-0.3.0-py3-none-any.whl
+uv pip install wiki_code_space-0.3.1-py3-none-any.whl
 ```
 
-After installation, the `wiki-engine` command will be available:
+After installation, both `wiki-engine` and its underscore alias `wiki_engine`
+are available:
 
 ```bash
 wiki-engine --help
+wiki_engine --help
 ```
 
 qmd is optional and is not installed as a wheel dependency. Without it,
