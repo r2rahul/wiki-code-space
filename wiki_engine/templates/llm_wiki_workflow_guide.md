@@ -2,7 +2,7 @@
 
 Project: {{ project_name }}
 Wiki root: {{ wiki_root }}
-Update command: python -m wiki_engine.cli update --project {{ project_name }}
+Update command: wiki_wspace update --project {{ project_name }}
 
 Use this guide when maintaining the wiki. Capture semantic context that helps a future human or agent understand why the project works as it does. Keep each note brief, atomic, and source-grounded.
 

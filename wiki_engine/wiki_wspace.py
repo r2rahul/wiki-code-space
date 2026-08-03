@@ -1,10 +1,9 @@
-"""Command-line interface for wiki_engine workflows."""
+"""Single command-line interface for wiki workspace workflows."""
 
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import shutil
 import sys
 
 from wiki_engine.agent_install import install_agent_instructions
@@ -15,14 +14,13 @@ from wiki_engine.updater import WikiUpdater
 def build_parser() -> argparse.ArgumentParser:
     """Build CLI parser with update workflow command.
 
-    Constructs an argument parser supporting update, search, init, migrate,
-    and harness-specific Agent Skill installation.
+    Constructs an argument parser supporting update, search, and unified init.
 
     :return: Configured argument parser ready for parse_args().
     :rtype: argparse.ArgumentParser
     """
 
-    parser = argparse.ArgumentParser(prog="wiki-engine")
+    parser = argparse.ArgumentParser(prog="wiki_wspace")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     update_parser = subparsers.add_parser("update", help="Run coherent wiki update")
@@ -102,44 +100,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_false",
         help="Disable qmd wiki indexing and use markdown search fallback",
     )
-    migrate_parser = subparsers.add_parser("migrate", help=argparse.SUPPRESS)
-    migrate_parser.add_argument("target_dir")
-    migrate_parser.add_argument("--project", dest="project_name", default=None)
-    migrate_parser.add_argument(
-        "--config",
-        dest="config_path",
-        default="config/wiki_engine.yaml",
-    )
-    migrate_parser.set_defaults(qmd_enabled=True)
-
-    install_parser = subparsers.add_parser(
-        "install",
-        help=argparse.SUPPRESS,
-    )
-    install_parser.add_argument(
-        "agent_name",
-        nargs="?",
-        choices=("copilot", "codex", "claude", "gemini"),
-        default="gemini",
-        help="Harness to configure (default: gemini)",
-    )
-    install_parser.add_argument(
-        "--project",
-        dest="project_name",
-        default=None,
-        help="Override project_name from config/wiki_engine.yaml",
-    )
-    install_parser.add_argument(
-        "--config",
-        dest="config_path",
-        default="config/wiki_engine.yaml",
-        help="Path to wiki_engine YAML config",
-    )
-    install_parser.add_argument(
-        "--user",
-        action="store_true",
-        help="Install only at user scope instead of modifying this project",
-    )
     return parser
 
 
@@ -169,12 +129,11 @@ def run_initialize(
         jinja_env=updater.jinja_env,
     )
 
-    print("wiki_engine init completed")
+    print("wiki_wspace init completed")
     print(f"project_root={result.project_root}")
     print(f"project_name={result.project_name}")
     print(f"config_path={result.config_path}")
     print(f"llm={agent_result.agent_name}")
-    print(f"agent={agent_result.agent_name}")
     print(f"instruction_path={agent_result.instruction_path}")
     print(f"refresh_command={agent_result.refresh_command}")
     print(f"query_command={agent_result.query_command}")
@@ -211,7 +170,7 @@ def run_update(project_name: str | None, config_path: str) -> int:
     updater = WikiUpdater(repo_root=repo_root, config_path=repo_root / config_path)
     result = updater.update(project_override=project_name)
 
-    print("wiki_engine update completed")
+    print("wiki_wspace update completed")
     print(f"changed_files={len(result.changed_files)}")
     print(f"bridge_edges={result.graph_result.get('bridge_edge_count', 0)}")
     print(f"qmd_status={result.qmd_result.get('status', 'unknown')}")
@@ -253,7 +212,7 @@ def run_search(
         result_count=result_count,
     )
 
-    print(f"wiki_engine search backend={result.get('backend', 'unknown')}")
+    print(f"wiki_wspace search backend={result.get('backend', 'unknown')}")
     print(f"status={result.get('status', 'unknown')}")
     if result.get("reason") == "qmd CLI not installed":
         print_qmd_fallback_notice()
@@ -275,17 +234,16 @@ def print_qmd_fallback_notice() -> None:
     """Explain the optional qmd accelerator and fallback scale guidance."""
 
     print(
-        "qmd is not installed; wiki_engine will default to index-based "
+        "qmd is not installed; wiki_wspace will default to index-based "
         "Markdown search. This works best for wikis with about 100 Markdown "
         "files or fewer; for larger wikis, consider installing qmd."
     )
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI entrypoint for python -m wiki_engine.cli and script usage.
+    """CLI entrypoint for the ``wiki_wspace`` command and module usage.
 
-    Parses command-line arguments and dispatches to appropriate handler
-    (update, search, init, migrate, or agent installation). Supports
+    Parses command-line arguments and dispatches to update, search, or init. Supports
     programmatic usage via argv parameter or direct CLI invocation.
 
     :param argv: Optional list of command-line arguments. If None, uses
@@ -320,76 +278,6 @@ def main(argv: list[str] | None = None) -> int:
             qmd_enabled=args.qmd_enabled,
             agent_name=args.agent_name,
         )
-
-    if args.command == "migrate":
-        result = initialize_project(
-            target_dir=args.target_dir,
-            project_name=args.project_name,
-            config_relpath=args.config_path,
-            qmd_enabled=args.qmd_enabled,
-        )
-        print("wiki_engine init completed")
-        print(f"project_root={result.project_root}")
-        print(f"project_name={result.project_name}")
-        print(f"config_path={result.config_path}")
-        print(f"changed_files={len(result.update_result.changed_files)}")
-        print(
-            "bridge_edges="
-            f"{result.update_result.graph_result.get('bridge_edge_count', 0)}"
-        )
-        print(f"qmd_status={result.update_result.qmd_result.get('status', 'unknown')}")
-        if result.update_result.qmd_result.get("reason") == "qmd CLI not installed":
-            print_qmd_fallback_notice()
-        return 0
-
-    if args.command == "install":
-        if not args.user:
-            return run_initialize(
-                target_dir=str(Path.cwd()),
-                project_name=args.project_name,
-                config_path=args.config_path,
-                qmd_enabled=True,
-                agent_name=args.agent_name,
-            )
-
-        repo_root = Path.cwd()
-        config_path = repo_root / args.config_path
-        config_created = not config_path.exists()
-        if config_created:
-            parser.error(
-                "--user installation requires an existing project config; "
-                "run 'wiki-engine init' first"
-            )
-        updater = WikiUpdater(
-            repo_root=repo_root,
-            config_path=config_path,
-        )
-        project_name = (
-            WikiUpdater.normalize_project_name(args.project_name)
-            if args.project_name
-            else updater.config.project_name
-        )
-        result = install_agent_instructions(
-            repo_root=repo_root,
-            project_name=project_name,
-            agent_name=args.agent_name,
-            jinja_env=updater.jinja_env,
-            user=args.user,
-        )
-        print("wiki_engine agent install completed")
-        print(f"agent={result.agent_name}")
-        print(f"scope={result.scope}")
-        print(f"config_path={config_path}")
-        print(f"config_created={str(config_created).lower()}")
-        print(f"instruction_path={result.instruction_path}")
-        print(f"refresh_command={result.refresh_command}")
-        print(f"query_command={result.query_command}")
-        for skill_path in result.skill_paths:
-            print(f"skill_path={skill_path}")
-        print(f"changed_files={len(result.changed_files)}")
-        if shutil.which("qmd") is None:
-            print_qmd_fallback_notice()
-        return 0
 
     parser.print_help()
     return 1

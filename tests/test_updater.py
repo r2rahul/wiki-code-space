@@ -43,7 +43,7 @@ def test_update_creates_required_wiki_files(tmp_path: Path) -> None:
     updater = WikiUpdater(repo_root=repo_root, config_path=config_path)
     result = updater.update(project_override="code_space")
 
-    wiki_root = repo_root / "wiki_code_space"
+    wiki_root = repo_root / "wiki_coce"
     assert (wiki_root / "index.md").exists()
     assert (wiki_root / "log.md").exists()
     assert (wiki_root / "qmd.yml").exists()
@@ -53,7 +53,7 @@ def test_update_creates_required_wiki_files(tmp_path: Path) -> None:
     assert not (wiki_root / "architecture" / "config_params.md").exists()
     assert not (wiki_root / "qa" / "business.md").exists()
     assert not (wiki_root / "qa" / "technical.md").exists()
-    assert not (wiki_root / "decisions" / "adr-0001-wiki-engine.md").exists()
+    assert not (wiki_root / "decisions" / "adr-placeholder.md").exists()
     assert not (wiki_root / "glossary" / "terms.md").exists()
     assert not (repo_root / "AGENTS.md").exists()
     assert not (repo_root / "CLAUDE.md").exists()
@@ -89,7 +89,7 @@ def test_update_does_not_modify_existing_agent_files(
 
     write_minimal_templates(repo_root=repo_root)
     (repo_root / "AGENTS.md").write_text(
-        "<!-- wiki-engine:start -->\nold generated content\n<!-- wiki-engine:end -->\n",
+        "<!-- wiki-wspace:start -->\nold generated content\n<!-- wiki-wspace:end -->\n",
         encoding="utf-8",
     )
     (repo_root / "CLAUDE.md").write_text(

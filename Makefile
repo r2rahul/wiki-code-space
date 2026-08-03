@@ -14,7 +14,7 @@ build:
 	uv build
 
 update-wiki:
-	uv run python -m wiki_engine.cli update --project code_space
+	uv run wiki_wspace update --project code_space
 
 init-wiki:
-	uv run python -m wiki_engine.cli init . --project code_space
+	uv run wiki_wspace init . --project code_space

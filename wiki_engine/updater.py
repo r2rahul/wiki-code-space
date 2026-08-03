@@ -5,13 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-import re
 from typing import Any
 
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 import yaml
 
 from wiki_engine.graph_bridge import update_graph_bridge
+from wiki_engine.naming import normalize_project_name
 from wiki_engine.qmd_bridge import refresh_qmd_index, search_wiki
 from wiki_engine.session_distill import distill_session_note, discover_session_notes
 
@@ -147,26 +147,20 @@ class WikiUpdater:
 
     @staticmethod
     def normalize_project_name(raw_name: str) -> str:
-        """Normalize project names for stable wiki folder conventions.
-
-        Converts arbitrary project names to lowercase alphanumeric with underscores,
-        stripping leading/trailing underscores and collapsing consecutive separators.
-        This ensures deterministic wiki folder names (wiki_<normalized_name>).
+        """Normalize project names for stable, compact wiki conventions.
 
         Args:
             raw_name (str): Arbitrary project name (may contain spaces, hyphens, etc.).
 
         Returns:
-            str: Normalized project name in lowercase, alphanumeric with underscores.
+            str: Clean lowercase name shortened to its first two and last two
+                characters.
 
         Raises:
             ValueError: If normalization results in an empty string.
         """
 
-        normalized = re.sub(r"[^a-zA-Z0-9]+", "_", raw_name.strip()).strip("_")
-        if not normalized:
-            raise ValueError("Project name cannot be empty after normalization")
-        return normalized.lower()
+        return normalize_project_name(raw_name)
 
     def update(self, project_override: str | None = None) -> UpdateResult:
         """Execute one coherent Wiki+bridge+qmd update workflow.
@@ -188,7 +182,11 @@ class WikiUpdater:
         """
 
         now = datetime.now()
-        project_name = project_override or self.config.project_name
+        project_name = (
+            normalize_project_name(project_override)
+            if project_override is not None
+            else self.config.project_name
+        )
         wiki_root = self.repo_root / f"wiki_{project_name}"
 
         changed_files: list[str] = []
@@ -257,7 +255,11 @@ class WikiUpdater:
                 Each match includes path, line number, score, and snippet.
         """
 
-        project_name = project_override or self.config.project_name
+        project_name = (
+            normalize_project_name(project_override)
+            if project_override is not None
+            else self.config.project_name
+        )
         wiki_root = self.repo_root / f"wiki_{project_name}"
         return search_wiki(
             query_text=query_text,

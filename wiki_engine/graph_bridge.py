@@ -8,7 +8,9 @@ import re
 from typing import Iterable
 
 
-CODE_REF_PATTERN = re.compile(r"(?P<path>[A-Za-z0-9_./-]+)\s*->\s*(?P<symbol>[A-Za-z0-9_().-]+)")
+CODE_REF_PATTERN = re.compile(
+    r"(?P<path>[A-Za-z0-9_./-]+)\s*->\s*(?P<symbol>[A-Za-z0-9_().-]+)"
+)
 
 
 @dataclass(frozen=True)

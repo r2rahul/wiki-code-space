@@ -72,7 +72,7 @@ def ensure_initialization_config(
 
     Idempotently ensures that a wiki_engine.yaml config file exists at the
     specified location. If missing, creates it with default values. If present,
-    leaves it unchanged.
+    updates its project-derived naming keys and preserves other settings.
 
     Args:
         project_root (Path): Absolute path to project root.
@@ -87,7 +87,21 @@ def ensure_initialization_config(
     config_path = project_root / config_relpath
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if not config_path.exists():
+    if config_path.exists():
+        config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+        if not isinstance(config_payload, dict):
+            raise ValueError(f"Config must contain a YAML mapping: {config_path}")
+        config_payload.update(
+            {
+                "project_name": project_name,
+                "wiki_root": f"wiki_{project_name}",
+                "qmd_collection": f"wiki_{project_name}",
+            }
+        )
+        config_content = yaml.safe_dump(config_payload, sort_keys=False)
+        if config_path.read_text(encoding="utf-8") != config_content:
+            config_path.write_text(config_content, encoding="utf-8")
+    else:
         config_payload = build_default_config(
             project_name=project_name,
             qmd_enabled=qmd_enabled,
@@ -114,8 +128,8 @@ def initialize_project(
 
     Args:
         target_dir (str): Path to existing project directory (absolute or relative).
-        project_name (str | None): Explicit project name. If None, uses the name
-            from an existing config or the directory name for a new config.
+        project_name (str | None): Explicit project name. If None, uses the
+            target directory name.
         config_relpath (str): Relative path to config file. Defaults to
             "config/wiki_engine.yaml".
         qmd_enabled (bool): Enable qmd in generated config. Defaults to True.
@@ -133,20 +147,15 @@ def initialize_project(
         raise ValueError(f"Target directory does not exist: {project_root}")
 
     inferred_name = project_name or project_root.name
-    initial_name = WikiUpdater.normalize_project_name(inferred_name)
+    normalized_name = WikiUpdater.normalize_project_name(inferred_name)
     config_path = ensure_initialization_config(
         project_root=project_root,
-        project_name=initial_name,
+        project_name=normalized_name,
         config_relpath=config_relpath,
         qmd_enabled=qmd_enabled,
     )
 
     updater = WikiUpdater(repo_root=project_root, config_path=config_path)
-    normalized_name = (
-        initial_name
-        if project_name is not None
-        else WikiUpdater.normalize_project_name(updater.config.project_name)
-    )
     update_result = updater.update(project_override=normalized_name)
 
     return InitializationResult(
@@ -154,65 +163,4 @@ def initialize_project(
         config_path=config_path,
         project_name=normalized_name,
         update_result=update_result,
-    )
-
-
-MigrationResult = InitializationResult
-
-
-def ensure_migration_config(
-    project_root: Path,
-    project_name: str,
-    config_relpath: str,
-    qmd_enabled: bool = True,
-) -> Path:
-    """Backward-compatible alias for initialization config creation.
-
-    Deprecated: Use ensure_initialization_config() directly.
-    This function is retained for API compatibility with legacy code paths.
-
-    Args:
-        project_root (Path): Absolute path to project root.
-        project_name (str): Normalized project identifier.
-        config_relpath (str): Relative path to config file.
-        qmd_enabled (bool): Enable qmd in generated config. Defaults to True.
-
-    Returns:
-        Path: Absolute path to the config file.
-    """
-
-    return ensure_initialization_config(
-        project_root=project_root,
-        project_name=project_name,
-        config_relpath=config_relpath,
-        qmd_enabled=qmd_enabled,
-    )
-
-
-def migrate_project(
-    target_dir: str,
-    project_name: str | None = None,
-    config_relpath: str = "config/wiki_engine.yaml",
-    qmd_enabled: bool = True,
-) -> InitializationResult:
-    """Backward-compatible alias for initialize_project.
-
-    Deprecated: Use initialize_project() directly.
-    This function is retained for API compatibility with legacy code paths.
-
-    Args:
-        target_dir (str): Path to existing project directory.
-        project_name (str | None): Explicit project name; defaults to directory name.
-        config_relpath (str): Relative path to config file.
-        qmd_enabled (bool): Enable qmd in generated config. Defaults to True.
-
-    Returns:
-        InitializationResult: Initialization outcome with project paths and update results.
-    """
-
-    return initialize_project(
-        target_dir=target_dir,
-        project_name=project_name,
-        config_relpath=config_relpath,
-        qmd_enabled=qmd_enabled,
     )

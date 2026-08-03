@@ -5,6 +5,6 @@ This project keeps rationale, architecture, decisions, QA constraints, glossary 
 
 - Use `{{ query_command }}` before broad exploration when a task depends on why the system behaves as it does, business context, configuration semantics, prior decisions, constraints, or known failure modes.
 - Use `{{ refresh_command }}` after code, configuration, tests, or documentation change project semantics.
-- Both commands use the installed Agent Skills. The query skill calls wiki_engine search, which uses qmd when available and otherwise performs index-based Markdown search.
+- Both commands use the installed Agent Skills. The query skill calls `wiki_wspace search`, which uses qmd when available and otherwise performs index-based Markdown search.
 - Never inspect `{{ wiki_root }}/stage/` unless the user names an exact file path there.
 {{ end_marker }}

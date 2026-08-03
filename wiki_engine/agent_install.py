@@ -4,35 +4,28 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-import re
 
 from jinja2 import Environment
+
+from wiki_engine.naming import normalize_project_name
 
 
 HARNESS_PATHS = {
     "copilot": {
         "project_instruction": Path(".github/copilot-instructions.md"),
         "project_skills": Path(".agents/skills"),
-        "user_instruction": Path(".copilot/copilot-instructions.md"),
-        "user_skills": Path(".agents/skills"),
     },
     "codex": {
         "project_instruction": Path("AGENTS.md"),
         "project_skills": Path(".agents/skills"),
-        "user_instruction": Path(".codex/AGENTS.md"),
-        "user_skills": Path(".codex/skills"),
     },
     "claude": {
         "project_instruction": Path("CLAUDE.md"),
         "project_skills": Path(".claude/skills"),
-        "user_instruction": Path(".claude/CLAUDE.md"),
-        "user_skills": Path(".claude/skills"),
     },
     "gemini": {
         "project_instruction": Path("GEMINI.md"),
         "project_skills": Path(".gemini/skills"),
-        "user_instruction": Path(".gemini/GEMINI.md"),
-        "user_skills": Path(".gemini/skills"),
     },
 }
 
@@ -42,7 +35,6 @@ class AgentInstallResult:
     """Result payload for one harness skill installation."""
 
     agent_name: str
-    scope: str
     instruction_path: Path
     skill_paths: tuple[Path, Path]
     refresh_command: str
@@ -51,13 +43,9 @@ class AgentInstallResult:
 
 
 def project_command_suffix(project_name: str) -> str:
-    """Build a stable command suffix from the first two and last two words."""
+    """Build a stable command suffix from the compact project name."""
 
-    words = re.findall(r"[a-z0-9]+", project_name.casefold())
-    if not words:
-        raise ValueError("Project name must contain at least one letter or number")
-    selected_words = words if len(words) <= 4 else words[:2] + words[-2:]
-    return "-".join(selected_words)
+    return normalize_project_name(project_name)
 
 
 def project_skill_names(project_name: str) -> tuple[str, str]:
@@ -66,8 +54,6 @@ def project_skill_names(project_name: str) -> tuple[str, str]:
     suffix = project_command_suffix(project_name)
     refresh_prefix = "wiki-ref-"
     query_prefix = "wiki-query-"
-    suffix_limit = 64 - max(len(refresh_prefix), len(query_prefix))
-    suffix = suffix[:suffix_limit].rstrip("-")
     refresh_name = f"{refresh_prefix}{suffix}"
     query_name = f"{query_prefix}{suffix}"
     return refresh_name, query_name
@@ -106,25 +92,17 @@ def install_agent_instructions(
     project_name: str,
     agent_name: str,
     jinja_env: Environment,
-    *,
-    user: bool = False,
-    user_home: Path | None = None,
 ) -> AgentInstallResult:
-    """Install two Agent Skills and a concise harness instruction block.
-
-    Project installation is the default. ``user=True`` writes only beneath the
-    supplied user home (or ``Path.home()``) and never modifies the project.
-    """
+    """Install two project Agent Skills and a harness instruction block."""
 
     if agent_name not in HARNESS_PATHS:
         raise ValueError(f"Unsupported agent: {agent_name}")
 
     harness_paths = HARNESS_PATHS[agent_name]
-    scope_root = (user_home or Path.home()) if user else repo_root
-    scope_key = "user" if user else "project"
-    instruction_path = scope_root / harness_paths[f"{scope_key}_instruction"]
-    skills_root = scope_root / harness_paths[f"{scope_key}_skills"]
+    instruction_path = repo_root / harness_paths["project_instruction"]
+    skills_root = repo_root / harness_paths["project_skills"]
 
+    project_name = normalize_project_name(project_name)
     refresh_name, query_name = project_skill_names(project_name)
     wiki_root = f"wiki_{project_name}"
     refresh_skill_path = skills_root / refresh_name
@@ -151,8 +129,8 @@ def install_agent_instructions(
     )
 
     marker_slug = project_command_suffix(project_name)
-    begin_marker = f"<!-- wiki-engine:{marker_slug}:start -->"
-    end_marker = f"<!-- wiki-engine:{marker_slug}:end -->"
+    begin_marker = f"<!-- wiki-wspace:{marker_slug}:start -->"
+    end_marker = f"<!-- wiki-wspace:{marker_slug}:end -->"
     instruction_block = jinja_env.get_template("agent_wiki_install.md.j2").render(
         **template_context,
         agent_name=agent_name,
@@ -175,14 +153,6 @@ def install_agent_instructions(
         if instruction_path.exists()
         else ""
     )
-    legacy_begin_marker = "<!-- wiki-engine:start -->"
-    legacy_end_marker = "<!-- wiki-engine:end -->"
-    if (
-        legacy_begin_marker in existing_content
-        and legacy_end_marker in existing_content
-    ):
-        begin_marker = legacy_begin_marker
-        end_marker = legacy_end_marker
     merged_content = _merge_marked_block(
         existing_content=existing_content,
         block_content=instruction_block,
@@ -194,7 +164,6 @@ def install_agent_instructions(
 
     return AgentInstallResult(
         agent_name=agent_name,
-        scope=scope_key,
         instruction_path=instruction_path,
         skill_paths=(refresh_skill_path, query_skill_path),
         refresh_command=f"/{refresh_name}",

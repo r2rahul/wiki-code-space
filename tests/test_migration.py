@@ -6,7 +6,7 @@ from pathlib import Path
 
 import yaml
 
-from wiki_engine.migration import initialize_project, migrate_project
+from wiki_engine.migration import initialize_project
 
 
 def test_initialize_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
@@ -18,7 +18,7 @@ def test_initialize_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
     result = initialize_project(target_dir=str(project_root))
 
     config_path = project_root / "config" / "wiki_engine.yaml"
-    wiki_root = project_root / "wiki_legacy_analytics_project"
+    wiki_root = project_root / "wiki_lect"
 
     assert config_path.exists()
     assert wiki_root.exists()
@@ -29,18 +29,18 @@ def test_initialize_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
     assert not (wiki_root / "architecture" / "config_params.md").exists()
     assert not (wiki_root / "qa" / "business.md").exists()
     assert not (wiki_root / "qa" / "technical.md").exists()
-    assert not (wiki_root / "decisions" / "adr-0001-wiki-engine.md").exists()
+    assert not (wiki_root / "decisions" / "adr-placeholder.md").exists()
     assert not (wiki_root / "glossary" / "terms.md").exists()
     assert not (project_root / "AGENTS.md").exists()
     assert not (project_root / "CLAUDE.md").exists()
     assert not (project_root / ".agents").exists()
 
     config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert config_payload["project_name"] == "legacy_analytics_project"
-    assert config_payload["qmd_collection"] == "wiki_legacy_analytics_project"
+    assert config_payload["project_name"] == "lect"
+    assert config_payload["qmd_collection"] == "wiki_lect"
     assert config_payload["qmd_enabled"] is True
 
-    assert result.project_name == "legacy_analytics_project"
+    assert result.project_name == "lect"
     assert len(result.update_result.changed_files) >= 1
 
 
@@ -58,8 +58,10 @@ def test_initialize_project_can_disable_qmd_indexing(tmp_path: Path) -> None:
     assert result.update_result.qmd_result["status"] == "disabled"
 
 
-def test_initialize_project_reuses_name_from_existing_config(tmp_path: Path) -> None:
-    """An existing config should remain authoritative when no override is given."""
+def test_initialize_project_uses_directory_name_when_override_is_omitted(
+    tmp_path: Path,
+) -> None:
+    """Default naming should clean and compact the target directory name."""
 
     project_root = tmp_path / "folder-name"
     project_root.mkdir(parents=True)
@@ -74,19 +76,31 @@ def test_initialize_project_reuses_name_from_existing_config(tmp_path: Path) -> 
         qmd_enabled=False,
     )
 
-    assert first_result.project_name == "demand_forecasting"
-    assert second_result.project_name == "demand_forecasting"
-    assert (project_root / "wiki_demand_forecasting" / "index.md").exists()
-    assert not (project_root / "wiki_folder_name").exists()
+    config_payload = yaml.safe_load(
+        (project_root / "config" / "wiki_engine.yaml").read_text(encoding="utf-8")
+    )
+    assert first_result.project_name == "deng"
+    assert second_result.project_name == "fome"
+    assert config_payload["project_name"] == "fome"
+    assert config_payload["wiki_root"] == "wiki_fome"
+    assert config_payload["qmd_collection"] == "wiki_fome"
+    assert (project_root / "wiki_deng" / "index.md").exists()
+    assert (project_root / "wiki_fome" / "index.md").exists()
 
 
-def test_migrate_project_alias_still_initializes(tmp_path: Path) -> None:
-    """The legacy migrate API should remain a compatible alias."""
+def test_initialize_project_removes_special_characters_from_user_name(
+    tmp_path: Path,
+) -> None:
+    """User-provided names should be cleaned before compacting."""
 
-    project_root = tmp_path / "legacy-project"
+    project_root = tmp_path / "project"
     project_root.mkdir(parents=True)
 
-    result = migrate_project(target_dir=str(project_root))
+    result = initialize_project(
+        target_dir=str(project_root),
+        project_name="!!! My Project @2026 ###",
+        qmd_enabled=False,
+    )
 
-    assert result.project_name == "legacy_project"
-    assert (project_root / "wiki_legacy_project" / "index.md").exists()
+    assert result.project_name == "my26"
+    assert (project_root / "wiki_my26" / "index.md").exists()

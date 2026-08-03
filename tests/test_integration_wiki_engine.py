@@ -11,7 +11,9 @@ import yaml
 from wiki_engine.updater import WikiUpdater
 
 
-TIMESTAMP_HEADER_PATTERN = re.compile(r"^## \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", re.MULTILINE)
+TIMESTAMP_HEADER_PATTERN = re.compile(
+    r"^## \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", re.MULTILINE
+)
 
 
 def _extract_front_matter(markdown_text: str) -> dict[str, object]:
@@ -53,7 +55,7 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     # Act: one coherent update run.
     result = updater.update(project_override="code_space")
 
-    wiki_root = tmp_path / "wiki_code_space"
+    wiki_root = tmp_path / "wiki_coce"
 
     # Assert: required artifacts and stage exclusions exist.
     assert (wiki_root / "index.md").exists()
@@ -70,7 +72,7 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
 
     # Assert: qmd ignore policy excludes stage and utility files.
     qmd_config = yaml.safe_load((wiki_root / "qmd.yml").read_text(encoding="utf-8"))
-    assert qmd_config["collection"] == "wiki_code_space"
+    assert qmd_config["collection"] == "wiki_coce"
     assert "stage/**" in qmd_config["ignore"]
     assert "_*.md" in qmd_config["ignore"]
 
@@ -79,7 +81,7 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     assert not (wiki_root / "architecture" / "config_params.md").exists()
     assert not (wiki_root / "qa" / "business.md").exists()
     assert not (wiki_root / "qa" / "technical.md").exists()
-    assert not (wiki_root / "decisions" / "adr-0001-wiki-engine.md").exists()
+    assert not (wiki_root / "decisions" / "adr-placeholder.md").exists()
     assert not (wiki_root / "glossary" / "terms.md").exists()
 
     session_path = wiki_root / "sessions" / "2026-07-05-config-routing.md"

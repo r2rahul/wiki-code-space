@@ -12,7 +12,7 @@ description: Refresh the {{ project_name }} semantic wiki after code, configurat
 5. Run:
 
    ```bash
-   python -m wiki_engine.cli update --project {{ project_name }}
+   wiki_wspace update --project {{ project_name }}
    ```
 
 6. Report changed wiki files and the `qmd_status`. A missing qmd installation is non-blocking because wiki_engine retains Markdown search.

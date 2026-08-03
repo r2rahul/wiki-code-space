@@ -9,7 +9,9 @@ import re
 from typing import Iterable
 
 
-CHECKBOX_PATTERN = re.compile(r"^- \[ \] (Applied to permanent note\(s\)|Logged in log\.md)$")
+CHECKBOX_PATTERN = re.compile(
+    r"^- \[ \] (Applied to permanent note\(s\)|Logged in log\.md)$"
+)
 
 
 @dataclass(frozen=True)
@@ -98,7 +100,9 @@ def append_snippet(target_path: Path, snippet: str, current_date: date) -> None:
     with target_path.open("a", encoding="utf-8") as file_pointer:
         if not existing_text.endswith("\n"):
             file_pointer.write("\n")
-        file_pointer.write(f"\n- {current_date.isoformat()}: {snippet.lstrip('- ').strip()}\n")
+        file_pointer.write(
+            f"\n- {current_date.isoformat()}: {snippet.lstrip('- ').strip()}\n"
+        )
 
 
 def distill_session_note(
@@ -114,7 +118,9 @@ def distill_session_note(
     changed_files: list[Path] = [session_path]
     for snippet in reusable_lines:
         routed_path = wiki_root / route_reusable_knowledge_line(snippet)
-        append_snippet(target_path=routed_path, snippet=snippet, current_date=current_date)
+        append_snippet(
+            target_path=routed_path, snippet=snippet, current_date=current_date
+        )
         changed_files.append(routed_path)
 
     updated_session_text = mark_distilled_checklist(session_text=session_text)
@@ -128,4 +134,6 @@ def discover_session_notes(session_dir: Path) -> Iterable[Path]:
 
     if not session_dir.exists():
         return []
-    return sorted(path for path in session_dir.glob("*.md") if path.name != "_template.md")
+    return sorted(
+        path for path in session_dir.glob("*.md") if path.name != "_template.md"
+    )

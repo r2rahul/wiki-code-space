@@ -29,7 +29,7 @@ Create `sessions/YYYY-MM-DD-<topic-slug>.md` only when a failed approach led to
 a corrected implementation or a reusable constraint was discovered.
 
 ## Agent Access
-Run `wiki-engine init <project-path> --llm <harness>` to initialize the wiki and
+Run `wiki_wspace init <project-path> --llm <harness>` to initialize the wiki and
 register project-level refresh and query skills in one operation. Supported
 harnesses are Copilot, Codex, Claude, and Gemini; Gemini is the default.
 

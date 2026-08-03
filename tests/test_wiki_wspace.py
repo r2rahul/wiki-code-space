@@ -9,7 +9,8 @@ import pytest
 import yaml
 
 from wiki_engine.agent_install import HARNESS_PATHS
-from wiki_engine.cli import main
+from wiki_engine.naming import normalize_project_name
+from wiki_engine.wiki_wspace import main
 
 
 def write_config(repo_root: Path, qmd_enabled: bool) -> None:
@@ -33,6 +34,16 @@ def write_config(repo_root: Path, qmd_enabled: bool) -> None:
         ),
         encoding="utf-8",
     )
+
+
+@pytest.mark.parametrize("legacy_command", ["install", "migrate"])
+def test_cli_rejects_removed_legacy_commands(legacy_command: str) -> None:
+    """The CLI should expose no legacy initialization command paths."""
+
+    with pytest.raises(SystemExit) as exc_info:
+        main([legacy_command])
+
+    assert exc_info.value.code == 2
 
 
 def test_search_cli_prints_qmd_output(
@@ -128,8 +139,9 @@ def test_init_cli_no_qmd_index_writes_config(
     assert "qmd_status=disabled" in output
     assert "llm=gemini" in output
     assert (project_root / "GEMINI.md").exists()
+    assert config_payload["project_name"] == "prct"
     assert (
-        project_root / ".gemini" / "skills" / "wiki-query-project" / "SKILL.md"
+        project_root / ".gemini" / "skills" / "wiki-query-prct" / "SKILL.md"
     ).exists()
 
 
@@ -169,11 +181,11 @@ def test_init_cli_defaults_to_project_gemini(
     output = capsys.readouterr().out
     assert exit_code == 0
     assert "llm=gemini" in output
-    assert "agent=gemini" in output
-    assert "refresh_command=/wiki-ref-project" in output
+    assert "project_name=prct" in output
+    assert "refresh_command=/wiki-ref-prct" in output
     assert (project_root / "GEMINI.md").exists()
     assert (
-        project_root / ".gemini" / "skills" / "wiki-query-project" / "SKILL.md"
+        project_root / ".gemini" / "skills" / "wiki-query-prct" / "SKILL.md"
     ).exists()
     assert not (tmp_path / "GEMINI.md").exists()
 
@@ -203,20 +215,20 @@ def test_init_cli_installs_selected_harness_in_target_project(
 
     instruction_path = project_root / HARNESS_PATHS[agent_name]["project_instruction"]
     skills_root = project_root / HARNESS_PATHS[agent_name]["project_skills"]
-    skill_suffix = f"{agent_name}-analytics"
+    project_name = normalize_project_name(project_root.name)
     output = capsys.readouterr().out
     assert exit_code == 0
     assert f"llm={agent_name}" in output
     assert instruction_path.exists()
-    assert (skills_root / f"wiki-ref-{skill_suffix}" / "SKILL.md").exists()
+    assert (skills_root / f"wiki-ref-{project_name}" / "SKILL.md").exists()
     assert (
-        skills_root / f"wiki-ref-{skill_suffix}" / "references" / "wiki-workflow.md"
+        skills_root / f"wiki-ref-{project_name}" / "references" / "wiki-workflow.md"
     ).exists()
-    assert (skills_root / f"wiki-query-{skill_suffix}" / "SKILL.md").exists()
-    assert (project_root / f"wiki_{agent_name}_analytics" / "index.md").exists()
+    assert (skills_root / f"wiki-query-{project_name}" / "SKILL.md").exists()
+    assert (project_root / f"wiki_{project_name}" / "index.md").exists()
 
 
-def test_init_cli_is_idempotent_with_configured_project_override(
+def test_init_cli_is_idempotent_with_user_project_name(
     monkeypatch,
     capsys,
     tmp_path: Path,
@@ -242,103 +254,24 @@ def test_init_cli_is_idempotent_with_configured_project_override(
     )
     capsys.readouterr()
     second_exit_code = main(
-        ["init", str(project_root), "--no-qmd-index", "--llm", "codex"]
+        [
+            "init",
+            str(project_root),
+            "--no-qmd-index",
+            "--project",
+            "Demand Forecasting",
+            "--llm",
+            "codex",
+        ]
     )
 
     output = capsys.readouterr().out
     instruction_text = instruction_path.read_text(encoding="utf-8")
     assert first_exit_code == 0
     assert second_exit_code == 0
-    assert "project_name=demand_forecasting" in output
+    assert "project_name=deng" in output
     assert "skill_changed_files=0" in output
     assert "# Handwritten instructions" in instruction_text
-    assert instruction_text.count("wiki-engine:demand-forecasting:start") == 1
-    assert (project_root / "wiki_demand_forecasting" / "index.md").exists()
-    assert not (project_root / "wiki_folder_name").exists()
-
-
-def test_install_cli_bootstraps_config_and_skills_in_fresh_project(
-    monkeypatch,
-    capsys,
-    tmp_path: Path,
-) -> None:
-    """A wheel install command must work without a source-tree config file."""
-
-    project_root = tmp_path / "Fresh Analytics Project"
-    project_root.mkdir()
-    monkeypatch.chdir(project_root)
-    monkeypatch.setattr("wiki_engine.cli.shutil.which", lambda _: None)
-
-    exit_code = main(["install", "codex"])
-
-    config_path = project_root / "config" / "wiki_engine.yaml"
-    config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    output = capsys.readouterr().out
-    assert exit_code == 0
-    assert config_payload["project_name"] == "fresh_analytics_project"
-    assert config_payload["wiki_root"] == "wiki_fresh_analytics_project"
-    assert "llm=codex" in output
-    assert (project_root / "AGENTS.md").exists()
-    assert (
-        project_root
-        / ".agents"
-        / "skills"
-        / "wiki-ref-fresh-analytics-project"
-        / "SKILL.md"
-    ).exists()
-    assert (
-        project_root
-        / ".agents"
-        / "skills"
-        / "wiki-ref-fresh-analytics-project"
-        / "references"
-        / "wiki-workflow.md"
-    ).exists()
-    assert (
-        project_root
-        / ".agents"
-        / "skills"
-        / "wiki-query-fresh-analytics-project"
-        / "SKILL.md"
-    ).exists()
-
-
-def test_install_cli_user_scope_does_not_write_project(
-    monkeypatch,
-    capsys,
-    tmp_path: Path,
-) -> None:
-    """CLI --user should direct every generated file beneath the user home."""
-
-    repo_root = tmp_path / "repo"
-    user_home = tmp_path / "home"
-    repo_root.mkdir()
-    write_config(repo_root=repo_root, qmd_enabled=False)
-    monkeypatch.chdir(repo_root)
-    monkeypatch.setattr(Path, "home", classmethod(lambda cls: user_home))
-
-    exit_code = main(["install", "codex", "--user"])
-
-    output = capsys.readouterr().out
-    assert exit_code == 0
-    assert "scope=user" in output
-    assert (user_home / ".codex" / "AGENTS.md").exists()
-    assert not (repo_root / "AGENTS.md").exists()
-
-
-def test_install_cli_user_scope_does_not_bootstrap_project_config(
-    monkeypatch,
-    tmp_path: Path,
-) -> None:
-    """A fresh --user install must preserve its no-project-writes contract."""
-
-    repo_root = tmp_path / "repo"
-    repo_root.mkdir()
-    monkeypatch.chdir(repo_root)
-
-    with pytest.raises(SystemExit) as exc_info:
-        main(["install", "codex", "--user"])
-
-    assert exc_info.value.code == 2
-    assert not (repo_root / "config" / "wiki_engine.yaml").exists()
-    assert not (repo_root / "AGENTS.md").exists()
+    assert instruction_text.count("wiki-wspace:deng:start") == 1
+    assert (project_root / "wiki_deng" / "index.md").exists()
+    assert not (project_root / "wiki_fome").exists()

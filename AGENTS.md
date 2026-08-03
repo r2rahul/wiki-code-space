@@ -6,7 +6,7 @@ Keep it concise and operational.
 ## Project
 
 Project name: <project_name>
-Primary command: python -m wiki_engine.cli update --project <project_name>
+Primary command: wiki_wspace update
 Wiki root: wiki_<project_name>
 QMD collection: wiki_<project_name>
 
@@ -21,7 +21,7 @@ Prioritize correctness, testability, and clear business impact.
 2. If changing configuration behavior, read wiki_<project_name>/architecture/config_params.md fully.
 3. If changing decision logic, read wiki_<project_name>/decisions/adr-*.md before coding.
 4. After implementation, run tests.
-5. Run python -m wiki_engine.cli update --project <project_name>.
+5. Run wiki_wspace update.
 
 ## Stage Folder Rule (Hard Gate)
 
@@ -76,9 +76,9 @@ Include:
 - project_name: code_space
 - wiki root: wiki_code_space
 - qmd collection: wiki_code_space
-- update command: python -m wiki_engine.cli update --project code_space
+- update command: wiki_wspace update
 
-<!-- wiki-engine:code-space:start -->
+<!-- wiki-wspace:code-space:start -->
 ## wiki_engine skills
 
 This project keeps rationale, architecture, decisions, QA constraints, glossary terms, and reusable lessons in `wiki_code_space/`.
@@ -87,4 +87,4 @@ This project keeps rationale, architecture, decisions, QA constraints, glossary 
 - Use `/wiki-ref-code-space` after code, configuration, tests, or documentation change project semantics.
 - The query command uses qmd when available and otherwise performs index-based Markdown search.
 - Never inspect `wiki_code_space/stage/` unless the user names an exact file path there.
-<!-- wiki-engine:code-space:end -->
+<!-- wiki-wspace:code-space:end -->

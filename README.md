@@ -11,7 +11,7 @@ Build and install from source with [uv](https://docs.astral.sh/uv/):
 
 ```bash
 uv sync
-uv run python -m wiki_engine.cli --help
+uv run wiki_wspace --help
 ```
 
 Alternatively, use the provided Makefile:
@@ -41,17 +41,15 @@ uv pip install dist/wiki_code_space-*.whl
 Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki-code-space/releases), then install:
 
 ```bash
-pip install wiki_code_space-0.4.0-py3-none-any.whl
+pip install wiki_code_space-0.5.0-py3-none-any.whl
 # or with uv:
-uv pip install wiki_code_space-0.4.0-py3-none-any.whl
+uv pip install wiki_code_space-0.5.0-py3-none-any.whl
 ```
 
-After installation, both `wiki-engine` and its underscore alias `wiki_engine`
-are available:
+After installation, one command-line entry point is available:
 
 ```bash
-wiki-engine --help
-wiki_engine --help
+wiki_wspace --help
 ```
 
 qmd is optional and is not installed as a wheel dependency. Without it,
@@ -65,22 +63,22 @@ One command initializes the wiki workflow and the selected agent harness in an
 existing project directory:
 
 ```bash
-wiki-engine init /path/to/existing-project --qmd-index --llm gemini
+wiki_wspace init /path/to/existing-project --qmd-index --llm gemini
 ```
 
 Gemini is the default, so `--llm gemini` can be omitted:
 
 ```bash
-wiki-engine init /path/to/existing-project --qmd-index
+wiki_wspace init /path/to/existing-project --qmd-index
 ```
 
 Use `--llm` to select any supported harness:
 
 ```bash
-wiki-engine init /path/to/existing-project --llm copilot
-wiki-engine init /path/to/existing-project --llm codex
-wiki-engine init /path/to/existing-project --llm claude
-wiki-engine init /path/to/existing-project --llm gemini
+wiki_wspace init /path/to/existing-project --llm copilot
+wiki_wspace init /path/to/existing-project --llm codex
+wiki_wspace init /path/to/existing-project --llm claude
+wiki_wspace init /path/to/existing-project --llm gemini
 ```
 
 Initialization creates the configuration and wiki scaffold, installs two
@@ -99,17 +97,19 @@ installation is idempotent.
 
 ### Generated commands
 
-For a project named `code_space`, installation exposes:
+Project names are cleaned to lowercase ASCII letters and numbers, then shortened
+to their first two and last two characters. Names with four or fewer characters
+remain unchanged. For example, `code_space` becomes `coce`, which creates
+`wiki_coce` and exposes:
 
-- `/wiki-ref-code-space` — updates the semantic wiki after code,
+- `/wiki-ref-coce` — updates the semantic wiki after code,
   configuration, test, architecture, or business-behavior changes.
-- `/wiki-query-code-space` — searches the wiki for rationale, architecture,
+- `/wiki-query-coce` — searches the wiki for rationale, architecture,
   decisions, configuration semantics, business context, QA constraints,
   glossary terms, and reusable failure lessons.
 
-Command names use lowercase kebab-case. Projects with four or fewer words use
-all words; longer names use the first two and last two words. Special characters
-are removed, and names are capped at the Agent Skills 64-character limit.
+The rule applies to both the target directory name and a value supplied with
+`--project`. For example, `My Project!` becomes `myct`.
 
 ## Recommended workflow
 
@@ -118,24 +118,16 @@ part of normal development:
 
 ```bash
 # 1. Create the wiki scaffold and Codex skills in the target project.
-wiki-engine init /path/to/project --qmd-index --llm codex
+wiki_wspace init /path/to/project --qmd-index --llm codex
 
 # 2. Run subsequent commands from that project root.
 cd /path/to/project
 
 # 3. Search durable project knowledge before broad code exploration.
-wiki-engine search "why is volatility_penalty capped" -n 10
+wiki_wspace search "why is volatility_penalty capped" -n 10
 
 # 4. Refresh semantic artifacts after behavior or documentation changes.
-wiki-engine update
-```
-
-The equivalent module form is available for every command:
-
-```bash
-python -m wiki_engine init /path/to/project --qmd-index --llm codex
-python -m wiki_engine search "why is volatility_penalty capped" -n 10
-python -m wiki_engine update
+wiki_wspace update
 ```
 
 ## Initialize an existing project
@@ -151,32 +143,28 @@ The unified command creates:
 - the selected harness instruction file
 - the refresh and query Agent Skills, including the refresh workflow reference
 
-For a new config, the directory name is normalized into a project identifier
-unless `--project` is supplied. Repeated initialization reuses the name in the
-existing config. Initialization does not create placeholder knowledge notes;
-semantic notes are added later only when source-grounded context exists.
+Without `--project`, every initialization derives the compact name from the
+target directory. Supplying `--project` applies the same cleaning and shortening
+rule to that value. Existing config naming keys are updated consistently.
+Initialization does not create placeholder knowledge notes; semantic notes are
+added later only when source-grounded context exists.
 
 For a newly created configuration, qmd indexing is enabled by default. Make the
 choice explicit with:
 
 ```bash
-wiki-engine init /path/to/existing-project --qmd-index
-wiki-engine init /path/to/existing-project --no-qmd-index
+wiki_wspace init /path/to/existing-project --qmd-index
+wiki_wspace init /path/to/existing-project --no-qmd-index
 ```
 
 Override the inferred project name or config location when needed:
 
 ```bash
-wiki-engine init /path/to/existing-project \
+wiki_wspace init /path/to/existing-project \
   --project demand_forecasting \
   --config config/wiki_engine.yaml \
   --llm claude
 ```
-
-The former `wiki-engine install <harness>` command remains as a compatibility
-alias for existing automation. New workflows should use `init --llm` so the
-target directory, wiki scaffold, configuration, and skills are initialized
-together.
 
 ## Search the wiki
 
@@ -185,7 +173,7 @@ qmd when available and healthy, then falls back to deterministic Markdown
 search while preserving configured exclusions:
 
 ```bash
-wiki-engine search "why volatility_penalty changed" --project code_space -n 10
+wiki_wspace search "why volatility_penalty changed" --project code_space -n 10
 ```
 
 The output reports `backend=qmd` or `backend=markdown`. Markdown results include
@@ -201,7 +189,7 @@ search. Agents should inspect it only when the user names an exact stage path.
 Run one coherent update after changes that affect durable project semantics:
 
 ```bash
-wiki-engine update --project code_space
+wiki_wspace update --project code_space
 ```
 
 The update command orchestrates:
@@ -220,8 +208,8 @@ and installed, `init` and `update` register the wiki collection and attempt
 embedding refresh as a non-blocking optimization:
 
 ```bash
-qmd collection add wiki_code_space --name wiki_code_space
-qmd embed -c wiki_code_space
+qmd collection add wiki_coce --name wiki_coce
+qmd embed -c wiki_coce
 ```
 
 If qmd is missing, collection registration fails, or embeddings are unavailable,
