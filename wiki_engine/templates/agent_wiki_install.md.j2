@@ -1,20 +1,10 @@
 {{ begin_marker }}
-## wiki maintenance
+## wiki_engine skills
 
-This project maintains a lightweight semantic wiki under {{ wiki_root }}/. The wiki records rationale, business context, decisions, QA constraints, and reusable session lessons that complement code documentation.
+This project keeps rationale, architecture, decisions, QA constraints, glossary terms, and reusable lessons in `{{ wiki_root }}/`.
 
-When the user types /wiki-refresh, run:
-
-```bash
-python -m wiki_engine.cli update --project {{ project_name }}
-```
-
-Rules:
-- Before broad codebase exploration, read {{ wiki_root }}/index.md.
-- If qmd is installed, prefer qmd query "<question>" -c {{ wiki_root }} --json -n 10 before reading multiple wiki pages.
-- Load the shared maintenance guide at {{ guide_path }} before editing wiki content.
-- For one-time first initialization in an already-developed project, use {{ bootstrap_path }} only when the user invokes /wiki-bootstrap.
-- Keep wiki notes semantic, brief, atomic, and business-relevant. Do not duplicate docstrings or implementation walkthroughs.
-- Never browse {{ wiki_root }}/stage/ unless the user names an exact file path in the conversation.
-- After code, config, or test edits that affect behavior or documentation semantics, run python -m wiki_engine.cli update --project {{ project_name }} once near completion.
+- Use `{{ query_command }}` before broad exploration when a task depends on why the system behaves as it does, business context, configuration semantics, prior decisions, constraints, or known failure modes.
+- Use `{{ refresh_command }}` after code, configuration, tests, or documentation change project semantics.
+- Both commands use the installed Agent Skills. The query skill calls wiki_engine search, which uses qmd when available and otherwise performs index-based Markdown search.
+- Never inspect `{{ wiki_root }}/stage/` unless the user names an exact file path there.
 {{ end_marker }}

@@ -1,0 +1,19 @@
+---
+name: {{ query_name }}
+description: Search and retrieve rationale, architecture, decisions, business context, QA constraints, configuration semantics, glossary terms, and reusable lessons from the {{ project_name }} wiki. Use when the user invokes {{ query_command }} or asks why this project behaves a certain way before broad codebase exploration.
+---
+
+# Query the {{ project_name }} wiki
+
+1. Convert the user's question into a focused semantic search phrase.
+2. Run:
+
+   ```bash
+   python -m wiki_engine.cli search "<question>" --project {{ project_name }} -n 10
+   ```
+
+3. Read only the most relevant returned pages, beginning with `{{ wiki_root }}/index.md` when orientation is needed.
+4. Search for durable context: architectural intent, configuration behavior, decision tradeoffs, business outcomes, QA invariants, failure lessons, and project-specific terminology.
+5. Treat implementation details as supporting evidence; use source files when the wiki points to them or lacks the answer.
+6. Never browse `{{ wiki_root }}/stage/` unless the user names an exact path.
+7. State whether results came from qmd or the Markdown fallback. The fallback is best suited to wikis of roughly 100 Markdown files or fewer; recommend qmd for larger wikis.

@@ -41,7 +41,7 @@ uv pip install dist/wiki_code_space-*.whl
 Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki_code_space/releases), then install:
 
 ```bash
-pip install wiki_code_space-0.1.0-py3-none-any.whl
+pip install wiki_code_space-0.3.0-py3-none-any.whl
 # or with uv:
 uv pip install wiki_code_space-0.1.0-py3-none-any.whl
 ```
@@ -52,29 +52,44 @@ After installation, the `wiki-engine` command will be available:
 wiki-engine --help
 ```
 
-## Agent instruction installers
+qmd is optional and is not installed as a wheel dependency. Without it,
+wiki_engine uses deterministic index-based Markdown search. That fallback is a
+good fit for wikis with roughly 100 Markdown files or fewer; install qmd for
+larger wikis.
 
-Install wiki maintenance instructions for a project assistant:
+## Agent Skill installers
+
+Initialization and refresh do not change harness prompts or install skills.
+Register the two project-specific Agent Skills only for the harness you use:
 
 ```bash
-python -m wiki_engine.cli codex --project code_space
-python -m wiki_engine.cli vscode --project code_space
-python -m wiki_engine.cli claude --project code_space
-python -m wiki_engine.cli gemini --project code_space
+python -m wiki_engine.cli install copilot --project code_space
+python -m wiki_engine.cli install codex --project code_space
+python -m wiki_engine.cli install claude --project code_space
+python -m wiki_engine.cli install gemini --project code_space
 ```
 
-Installer commands write assistant instructions plus shared prompt guides under
-`wiki_<project>/templates/` inside the initialized project.
+Omitting the harness defaults to a project-level Gemini installation:
 
-Use the prompt guides by use case:
+```bash
+python -m wiki_engine.cli install --project code_space
+```
 
-- `llm_wiki_workflow_guide.md`: normal incremental wiki maintenance during
-  ongoing development.
-- `wiki_first_init_bootstrap.md`: one-time `/wiki-bootstrap "<seed_text>"`
-  workflow when enabling wiki maintenance in a project that already has working
-  code and existing decisions.
+Pass `--user` to write only user-level harness files and leave the project
+untouched:
 
-This command orchestrates:
+```bash
+python -m wiki_engine.cli install codex --project code_space --user
+```
+
+For `code_space`, installation exposes `/wiki-ref-code-space` to refresh the
+wiki and `/wiki-query-code-space` to search it. Longer project names use their
+first two and last two sanitized words. The generated `SKILL.md` files follow
+the Agent Skills specification and the harness prompt explains when to query
+for rationale, architecture, decisions, business context, configuration
+semantics, QA constraints, glossary terms, and reusable failure lessons.
+
+The update command orchestrates:
 
 1. Wiki scaffold and note updates.
 2. Session note distillation into permanent notes.
@@ -102,14 +117,14 @@ Initialize any existing project folder with this wiki workflow:
 python -m wiki_engine.cli init /path/to/existing-project
 ```
 
-Init creates the wiki folders, `index.md`, `log.md`, `qmd.yml`, agent
-instructions, and shared prompt guides. It does not create example notes under
+Init creates the wiki folders, `index.md`, `log.md`, and `qmd.yml`. It does not
+install Agent Skills, modify harness prompts, or create example notes under
 `sessions/`, `qa/`, `glossary/`, `architecture/`, or `decisions/`; those notes
 are created later only when source-grounded project context exists.
 
-qmd indexing is enabled by default. When qmd is installed, init/update register
-the wiki folder as a collection, then try embeddings as a non-blocking
-acceleration:
+qmd indexing is enabled by default but remains optional. When qmd is installed,
+init/update register the wiki folder as a collection, then try embeddings as a
+non-blocking acceleration:
 
 ```bash
 qmd collection add wiki_code_space --name wiki_code_space

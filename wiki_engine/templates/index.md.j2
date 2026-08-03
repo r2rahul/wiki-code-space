@@ -26,14 +26,12 @@ regression risks, invariants, interfaces, or failure modes to preserve.
 
 ## Sessions
 Create `sessions/YYYY-MM-DD-<topic-slug>.md` only when a failed approach led to
-a corrected implementation or a reusable constraint was discovered. Follow the
-session metadata and section rules in `templates/llm_wiki_workflow_guide.md`.
+a corrected implementation or a reusable constraint was discovered.
 
-## LLM Maintenance
-- templates/llm_wiki_workflow_guide.md
-    Shared agent guide for deciding what semantic content belongs in each wiki folder.
-- templates/wiki_first_init_bootstrap.md
-    One-time bootstrap prompt for enabling wiki maintenance in an already-developed project.
+## Agent Access
+The base installation is CLI-only. Run `python -m wiki_engine.cli install
+<copilot|codex|claude|gemini>` to register project-level refresh and query
+skills for one harness. Use `--user` for a user-level-only installation.
 
 ## Glossary
 Create `glossary/<term-slug>.md` only for project-specific terms,
@@ -41,7 +39,6 @@ abbreviations, or overloaded meanings that reduce ambiguity.
 
 ## First Files To Load
 - index.md
-- templates/llm_wiki_workflow_guide.md before editing wiki content
 - folder-specific notes only when the user request or changed module makes them relevant
 
 ## Never Auto-Read

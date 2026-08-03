@@ -78,24 +78,13 @@ Include:
 - qmd collection: wiki_code_space
 - update command: python -m wiki_engine.cli update --project code_space
 
-<!-- wiki-engine:start -->
-## wiki maintenance
+<!-- wiki-engine:code-space:start -->
+## wiki_engine skills
 
-This project maintains a lightweight semantic wiki under wiki_code_space/. The wiki records rationale, business context, decisions, QA constraints, and reusable session lessons that complement code documentation.
+This project keeps rationale, architecture, decisions, QA constraints, glossary terms, and reusable lessons in `wiki_code_space/`.
 
-When the user types /wiki-refresh, run:
-
-```bash
-python -m wiki_engine.cli update --project code_space
-```
-
-Rules:
-- Before broad codebase exploration, read wiki_code_space/index.md.
-- If qmd is installed, prefer qmd query "<question>" -c wiki_code_space --json -n 10 before reading multiple wiki pages.
-- Load the shared maintenance guide at wiki_code_space/templates/llm_wiki_workflow_guide.md before editing wiki content.
-- For one-time first initialization in an already-developed project, use wiki_code_space/templates/wiki_first_init_bootstrap.md only when the user invokes /wiki-bootstrap.
-- Keep wiki notes semantic, brief, atomic, and business-relevant. Do not duplicate docstrings or implementation walkthroughs.
-- Never browse wiki_code_space/stage/ unless the user names an exact file path in the conversation.
-- After code, config, or test edits that affect behavior or documentation semantics, run python -m wiki_engine.cli update --project code_space once near completion.
-<!-- wiki-engine:end -->
-
+- Use `/wiki-query-code-space` before broad exploration when a task depends on why the system behaves as it does, business context, configuration semantics, prior decisions, constraints, or known failure modes.
+- Use `/wiki-ref-code-space` after code, configuration, tests, or documentation change project semantics.
+- The query command uses qmd when available and otherwise performs index-based Markdown search.
+- Never inspect `wiki_code_space/stage/` unless the user names an exact file path there.
+<!-- wiki-engine:code-space:end -->

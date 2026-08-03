@@ -11,7 +11,6 @@ from typing import Any
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 import yaml
 
-from wiki_engine.agent_install import install_agent_instructions
 from wiki_engine.graph_bridge import update_graph_bridge
 from wiki_engine.qmd_bridge import refresh_qmd_index, search_wiki
 from wiki_engine.session_distill import distill_session_note, discover_session_notes
@@ -174,11 +173,10 @@ class WikiUpdater:
 
         Orchestrates a complete update cycle:
         1. Ensures wiki scaffold (directories and template-rendered files).
-        2. Installs/refreshes agent instruction files.
-        3. Distills session notes into permanent wiki destinations.
-        4. Updates semantic graph bridge.
-        5. Refreshes qmd collection index.
-        6. Appends atomic log entry.
+        2. Distills session notes into permanent wiki destinations.
+        3. Updates semantic graph bridge.
+        4. Refreshes qmd collection index.
+        5. Appends atomic log entry.
 
         Args:
             project_override (str | None): Override project name from config.
@@ -201,8 +199,6 @@ class WikiUpdater:
                 now=now,
             )
         )
-        changed_files.extend(self._ensure_agent_files(project_name=project_name))
-
         distilled_changed_files = self._distill_sessions_if_present(
             wiki_root=wiki_root,
             now=now,
@@ -331,33 +327,6 @@ class WikiUpdater:
             was_updated = self._write_if_changed(file_path=file_path, content=content)
             if was_updated:
                 changed_files.append(file_path.relative_to(self.repo_root).as_posix())
-
-        return changed_files
-
-    def _ensure_agent_files(self, project_name: str) -> list[str]:
-        """Ensure root agent instruction files include wiki refresh template.
-
-        Installs or refreshes agent instruction files (.github/copilot-instructions.md,
-        .claude/instructions.md) with wiki refresh command templates for supported
-        agent platforms (codex, claude).
-
-        Args:
-            project_name (str): Normalized project identifier.
-
-        Returns:
-            list[str]: Relative paths (POSIX) of agent instruction files created
-                or updated.
-        """
-
-        changed_files: list[str] = []
-        for agent_name in ("codex", "claude"):
-            result = install_agent_instructions(
-                repo_root=self.repo_root,
-                project_name=project_name,
-                agent_name=agent_name,
-                jinja_env=self.jinja_env,
-            )
-            changed_files.extend(result.changed_files)
 
         return changed_files
 

@@ -81,6 +81,29 @@ def test_search_cli_prints_markdown_fallback(
     assert "index.md:1" in output
 
 
+def test_search_cli_missing_qmd_prints_fallback_guidance(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    """Search should explain the scale boundary when optional qmd is absent."""
+
+    write_config(repo_root=tmp_path, qmd_enabled=True)
+    wiki_root = tmp_path / "wiki_code_space"
+    wiki_root.mkdir()
+    (wiki_root / "index.md").write_text("volatility context\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: None)
+
+    exit_code = main(["search", "volatility"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "backend=markdown" in output
+    assert "qmd is not installed" in output
+    assert "about 100 Markdown files or fewer" in output
+
+
 def test_init_cli_no_qmd_index_writes_config(
     monkeypatch,
     capsys,
@@ -101,3 +124,71 @@ def test_init_cli_no_qmd_index_writes_config(
     assert exit_code == 0
     assert config_payload["qmd_enabled"] is False
     assert "qmd_status=disabled" in output
+
+
+def test_init_cli_missing_qmd_prints_scale_guidance(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    """A missing optional qmd binary should produce actionable fallback guidance."""
+
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: None)
+
+    exit_code = main(["init", str(project_root)])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "qmd is not installed" in output
+    assert "about 100 Markdown files or fewer" in output
+
+
+def test_install_cli_defaults_to_project_gemini(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    """Bare install should target Gemini at project scope."""
+
+    write_config(repo_root=tmp_path, qmd_enabled=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("wiki_engine.cli.shutil.which", lambda _: None)
+
+    exit_code = main(["install"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "agent=gemini" in output
+    assert "scope=project" in output
+    assert "refresh_command=/wiki-ref-code-space" in output
+    assert "qmd is not installed" in output
+    assert (tmp_path / "GEMINI.md").exists()
+    assert (
+        tmp_path / ".gemini" / "skills" / "wiki-query-code-space" / "SKILL.md"
+    ).exists()
+
+
+def test_install_cli_user_scope_does_not_write_project(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    """CLI --user should direct every generated file beneath the user home."""
+
+    repo_root = tmp_path / "repo"
+    user_home = tmp_path / "home"
+    repo_root.mkdir()
+    write_config(repo_root=repo_root, qmd_enabled=False)
+    monkeypatch.chdir(repo_root)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: user_home))
+
+    exit_code = main(["install", "codex", "--user"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "scope=user" in output
+    assert (user_home / ".codex" / "AGENTS.md").exists()
+    assert not (repo_root / "AGENTS.md").exists()

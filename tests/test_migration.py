@@ -31,26 +31,9 @@ def test_initialize_project_bootstraps_config_and_wiki(tmp_path: Path) -> None:
     assert not (wiki_root / "qa" / "technical.md").exists()
     assert not (wiki_root / "decisions" / "adr-0001-wiki-engine.md").exists()
     assert not (wiki_root / "glossary" / "terms.md").exists()
-    assert (project_root / "AGENTS.md").exists()
-    assert (project_root / "CLAUDE.md").exists()
-    assert (
-        project_root
-        / "wiki_legacy_analytics_project"
-        / "templates"
-        / "llm_wiki_workflow_guide.md"
-    ).exists()
-    assert (
-        project_root
-        / "wiki_legacy_analytics_project"
-        / "templates"
-        / "wiki_first_init_bootstrap.md"
-    ).exists()
-    assert "wiki_legacy_analytics_project" in (
-        project_root / "AGENTS.md"
-    ).read_text(encoding="utf-8")
-    assert "wiki_legacy_analytics_project" in (
-        project_root / "CLAUDE.md"
-    ).read_text(encoding="utf-8")
+    assert not (project_root / "AGENTS.md").exists()
+    assert not (project_root / "CLAUDE.md").exists()
+    assert not (project_root / ".agents").exists()
 
     config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert config_payload["project_name"] == "legacy_analytics_project"
