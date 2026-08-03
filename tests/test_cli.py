@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 import yaml
 
 from wiki_engine.cli import main
@@ -171,6 +172,52 @@ def test_install_cli_defaults_to_project_gemini(
     ).exists()
 
 
+def test_install_cli_bootstraps_config_and_skills_in_fresh_project(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    """A wheel install command must work without a source-tree config file."""
+
+    project_root = tmp_path / "Fresh Analytics Project"
+    project_root.mkdir()
+    monkeypatch.chdir(project_root)
+    monkeypatch.setattr("wiki_engine.cli.shutil.which", lambda _: None)
+
+    exit_code = main(["install", "codex"])
+
+    config_path = project_root / "config" / "wiki_engine.yaml"
+    config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert config_payload["project_name"] == "fresh_analytics_project"
+    assert config_payload["wiki_root"] == "wiki_fresh_analytics_project"
+    assert "config_created=true" in output
+    assert (project_root / "AGENTS.md").exists()
+    assert (
+        project_root
+        / ".agents"
+        / "skills"
+        / "wiki-ref-fresh-analytics-project"
+        / "SKILL.md"
+    ).exists()
+    assert (
+        project_root
+        / ".agents"
+        / "skills"
+        / "wiki-ref-fresh-analytics-project"
+        / "references"
+        / "wiki-workflow.md"
+    ).exists()
+    assert (
+        project_root
+        / ".agents"
+        / "skills"
+        / "wiki-query-fresh-analytics-project"
+        / "SKILL.md"
+    ).exists()
+
+
 def test_install_cli_user_scope_does_not_write_project(
     monkeypatch,
     capsys,
@@ -191,4 +238,22 @@ def test_install_cli_user_scope_does_not_write_project(
     assert exit_code == 0
     assert "scope=user" in output
     assert (user_home / ".codex" / "AGENTS.md").exists()
+    assert not (repo_root / "AGENTS.md").exists()
+
+
+def test_install_cli_user_scope_does_not_bootstrap_project_config(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    """A fresh --user install must preserve its no-project-writes contract."""
+
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    monkeypatch.chdir(repo_root)
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(["install", "codex", "--user"])
+
+    assert exc_info.value.code == 2
+    assert not (repo_root / "config" / "wiki_engine.yaml").exists()
     assert not (repo_root / "AGENTS.md").exists()

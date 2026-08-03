@@ -60,7 +60,7 @@ larger wikis.
 ## Agent Skill installers
 
 The base package is CLI-only. `init` and `update` never install Agent Skills or
-modify assistant instruction files. After initializing a project, explicitly
+modify assistant instruction files. Run the installer from a project root to
 register wiki support for the harness used in that project:
 
 ```bash
@@ -74,7 +74,9 @@ wiki-engine install gemini
 Each command installs two project-specific skills and adds a small, marked
 section to the selected harness instruction file. Existing handwritten content
 is preserved, repeated installation is idempotent, and legacy unsuffixed
-`wiki-engine` blocks are migrated automatically.
+`wiki-engine` blocks are migrated automatically. If
+`config/wiki_engine.yaml` does not exist, installation creates it in that
+project root using the normalized directory name (or `--project` value).
 
 ### Supported harnesses and project paths
 
@@ -133,18 +135,19 @@ are removed, and names are capped at the Agent Skills 64-character limit.
 
 ## Recommended workflow
 
-Initialize once, install only the harness you use, then query and refresh the
-wiki as part of normal development:
+Install the harness you use, then query and refresh the wiki as part of normal
+development. A separate `init` step is optional because `install` creates a
+missing project configuration:
 
 ```bash
-# 1. Create config and the wiki scaffold in an existing project.
-wiki-engine init /path/to/project
-
-# 2. Run subsequent commands from that project root.
+# 1. Run commands from the project root.
 cd /path/to/project
 
-# 3. Register one harness. Gemini is the default when omitted.
+# 2. Register one harness. Gemini is the default when omitted.
 wiki-engine install codex
+
+# 3. Create the wiki scaffold immediately (otherwise the first refresh does it).
+wiki-engine update
 
 # 4. Search durable project knowledge before broad code exploration.
 wiki-engine search "why is volatility_penalty capped" -n 10

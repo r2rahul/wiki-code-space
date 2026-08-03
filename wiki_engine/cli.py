@@ -8,7 +8,7 @@ import shutil
 import sys
 
 from wiki_engine.agent_install import install_agent_instructions
-from wiki_engine.migration import initialize_project
+from wiki_engine.migration import ensure_initialization_config, initialize_project
 from wiki_engine.updater import WikiUpdater
 
 
@@ -280,11 +280,32 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "install":
         repo_root = Path.cwd()
+        config_path = repo_root / args.config_path
+        config_created = not config_path.exists()
+        if config_created:
+            if args.user:
+                parser.error(
+                    "--user installation requires an existing project config; "
+                    "run 'wiki-engine init' first"
+                )
+            inferred_project_name = args.project_name or repo_root.name
+            normalized_project_name = WikiUpdater.normalize_project_name(
+                inferred_project_name
+            )
+            config_path = ensure_initialization_config(
+                project_root=repo_root,
+                project_name=normalized_project_name,
+                config_relpath=args.config_path,
+            )
         updater = WikiUpdater(
             repo_root=repo_root,
-            config_path=repo_root / args.config_path,
+            config_path=config_path,
         )
-        project_name = args.project_name or updater.config.project_name
+        project_name = (
+            WikiUpdater.normalize_project_name(args.project_name)
+            if args.project_name
+            else updater.config.project_name
+        )
         result = install_agent_instructions(
             repo_root=repo_root,
             project_name=project_name,
@@ -295,6 +316,8 @@ def main(argv: list[str] | None = None) -> int:
         print("wiki_engine agent install completed")
         print(f"agent={result.agent_name}")
         print(f"scope={result.scope}")
+        print(f"config_path={config_path}")
+        print(f"config_created={str(config_created).lower()}")
         print(f"instruction_path={result.instruction_path}")
         print(f"refresh_command={result.refresh_command}")
         print(f"query_command={result.query_command}")
