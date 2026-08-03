@@ -241,7 +241,7 @@ def print_qmd_fallback_notice() -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI entrypoint for the ``wiki_wspace`` command and module usage.
+    """CLI entrypoint for the ``wiki_wspace`` console script.
 
     Parses command-line arguments and dispatches to update, search, or init. Supports
     programmatic usage via argv parameter or direct CLI invocation.

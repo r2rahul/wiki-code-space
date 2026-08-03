@@ -1,4 +1,4 @@
-.PHONY: install format test build update-wiki init-wiki
+.PHONY: install format test build update-wiki
 
 install:
 	uv sync
@@ -14,7 +14,4 @@ build:
 	uv build
 
 update-wiki:
-	uv run wiki_wspace update --project code_space
-
-init-wiki:
-	uv run wiki_wspace init . --project code_space
+	uv run wiki_wspace update

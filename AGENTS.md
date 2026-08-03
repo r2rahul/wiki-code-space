@@ -79,7 +79,7 @@ Include:
 - update command: wiki_wspace update
 
 <!-- wiki-wspace:code-space:start -->
-## wiki_engine skills
+## wiki_wspace skills
 
 This project keeps rationale, architecture, decisions, QA constraints, glossary terms, and reusable lessons in `wiki_code_space/`.
 

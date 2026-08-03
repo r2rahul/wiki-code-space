@@ -53,7 +53,7 @@ wiki_wspace --help
 ```
 
 qmd is optional and is not installed as a wheel dependency. Without it,
-wiki_engine uses deterministic index-based Markdown search. That fallback is a
+`wiki_wspace` uses deterministic index-based Markdown search. That fallback is a
 good fit for wikis with roughly 100 Markdown files or fewer; install qmd for
 larger wikis.
 
