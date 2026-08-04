@@ -104,3 +104,67 @@ def test_update_does_not_modify_existing_agent_files(
     claude_text = (repo_root / "CLAUDE.md").read_text(encoding="utf-8")
     assert "old generated content" in agents_text
     assert "# Handwritten heading" in claude_text
+
+
+def test_update_preserves_initialized_index_and_ignores_shadow_template(
+    tmp_path: Path,
+) -> None:
+    """Index edits must survive refresh without a project-local template."""
+
+    repo_root = tmp_path
+    config_dir = repo_root / "config"
+    config_dir.mkdir(parents=True)
+    config_path = config_dir / "wiki_engine.yaml"
+    config_path.write_text(
+        (
+            "project_name: code_space\n"
+            "wiki_root: wiki_code_space\n"
+            "qmd_collection: wiki_code_space\n"
+            "qmd_enabled: false\n"
+            "date_format: '%Y-%m-%d'\n"
+            "timestamp_format: '%Y-%m-%dT%H:%M:%S'\n"
+            "stage_exclude_paths:\n"
+            "  - stage/**\n"
+            "default_tags:\n"
+            "  - wiki\n"
+            "update_mode: coherent\n"
+        ),
+        encoding="utf-8",
+    )
+
+    updater = WikiUpdater(repo_root=repo_root, config_path=config_path)
+    updater.update(project_override="code_space")
+
+    index_path = repo_root / "wiki_coce" / "index.md"
+    customized_index = (
+        "---\n"
+        "id: project-index\n"
+        "---\n"
+        "# Custom index\n\n"
+        "## Glossary\n"
+        "- [[glossary/risk-budget]]\n"
+    )
+    index_path.write_text(customized_index, encoding="utf-8")
+
+    shadow_template = repo_root / "wiki_engine" / "templates" / "index.md.j2"
+    shadow_template.parent.mkdir(parents=True)
+    shadow_template.write_text(
+        "# Shadow template must be ignored\n",
+        encoding="utf-8",
+    )
+
+    result = WikiUpdater(repo_root=repo_root, config_path=config_path).update(
+        project_override="code_space"
+    )
+
+    assert index_path.read_text(encoding="utf-8") == customized_index
+    assert "wiki_coce/index.md" not in result.changed_files
+
+    index_path.unlink()
+    WikiUpdater(repo_root=repo_root, config_path=config_path).update(
+        project_override="code_space"
+    )
+
+    recreated_index = index_path.read_text(encoding="utf-8")
+    assert recreated_index.startswith("# wiki_coce\n")
+    assert "Shadow template must be ignored" not in recreated_index

@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
+from jinja2 import Environment, PackageLoader
 import yaml
 
 from wiki_engine.graph_bridge import update_graph_bridge
@@ -93,13 +93,8 @@ class WikiUpdater:
         self.repo_root = repo_root
         self.config_path = config_path
         self.config = self._load_config(config_path=config_path)
-        template_dir = repo_root / "wiki_engine" / "templates"
-        loader_list: list[FileSystemLoader | PackageLoader] = []
-        if template_dir.exists():
-            loader_list.append(FileSystemLoader(str(template_dir)))
-        loader_list.append(PackageLoader("wiki_engine", "templates"))
         self.jinja_env = Environment(
-            loader=ChoiceLoader(loader_list),
+            loader=PackageLoader("wiki_engine", "templates"),
             autoescape=False,
             trim_blocks=True,
             lstrip_blocks=True,
@@ -278,9 +273,10 @@ class WikiUpdater:
     ) -> list[str]:
         """Create or refresh required wiki files and folders.
 
-        Creates canonical directory structure (architecture, decisions, qa, sessions,
-        glossary, stage) and renders template-driven files (index.md, log.md, qmd.yml).
-        Only updates files when content has changed.
+        Creates the canonical directory structure and renders ``index.md`` and
+        ``log.md`` only when they do not exist. Once initialized, ``index.md`` is
+        project-owned content that agents and users can edit directly. Generated
+        metadata such as ``qmd.yml`` and stage sentinels remains refreshable.
 
         Args:
             project_name (str): Normalized project identifier.
@@ -307,25 +303,33 @@ class WikiUpdater:
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
 
-        created_or_updated = {
-            wiki_root / "index.md": self._render_template(
+        index_path = wiki_root / "index.md"
+        if not index_path.exists():
+            index_content = self._render_template(
                 "index.md.j2",
                 project_name=project_name,
                 wiki_root=wiki_root.name,
                 date_text=now.strftime(self.config.date_format),
-            ),
-            wiki_root / "log.md": self._render_template(
+            )
+            if self._write_if_changed(file_path=index_path, content=index_content):
+                changed_files.append(index_path.relative_to(self.repo_root).as_posix())
+
+        log_path = wiki_root / "log.md"
+        if not log_path.exists():
+            log_content = self._render_template(
                 "log.md.j2",
                 date_text=now.strftime(self.config.date_format),
-            ),
+            )
+            if self._write_if_changed(file_path=log_path, content=log_content):
+                changed_files.append(log_path.relative_to(self.repo_root).as_posix())
+
+        refreshable_files = {
             wiki_root / "qmd.yml": self._render_qmd_yaml(project_name=project_name),
             wiki_root / "stage" / ".noindex": "stage is excluded from indexing\n",
             wiki_root / "stage" / ".qmdexclude": "stage is excluded from qmd\n",
         }
 
-        for file_path, content in created_or_updated.items():
-            if file_path.exists() and file_path.name == "log.md":
-                continue
+        for file_path, content in refreshable_files.items():
             was_updated = self._write_if_changed(file_path=file_path, content=content)
             if was_updated:
                 changed_files.append(file_path.relative_to(self.repo_root).as_posix())

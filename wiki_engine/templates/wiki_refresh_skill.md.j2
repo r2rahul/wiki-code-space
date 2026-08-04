@@ -9,10 +9,14 @@ description: Refresh the {{ project_name }} semantic wiki after code, configurat
 2. Read `references/wiki-workflow.md` before editing wiki content.
 3. Preserve the hard gate on `{{ wiki_root }}/stage/`; do not browse it unless the user names an exact path.
 4. Add or update only brief, source-grounded semantic notes relevant to the change.
-5. Run:
+5. Update `{{ wiki_root }}/index.md` directly when its navigation, front matter,
+   or top-level links need to change. Never create a project-local
+   `wiki_engine/templates/index.md.j2`; `wiki_wspace update` preserves the
+   initialized index.
+6. Run:
 
    ```bash
    wiki_wspace update --project {{ project_name }}
    ```
 
-6. Report changed wiki files and the `qmd_status`. A missing qmd installation is non-blocking because `wiki_wspace` retains Markdown search.
+7. Report changed wiki files and the `qmd_status`. A missing qmd installation is non-blocking because `wiki_wspace` retains Markdown search.

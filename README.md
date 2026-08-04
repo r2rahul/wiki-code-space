@@ -84,13 +84,15 @@ wiki_wspace init /path/to/existing-project --llm gemini
 Initialization creates the configuration and wiki scaffold, installs two
 project-specific skills, and adds a marked section to the selected harness
 instruction file. Existing handwritten instructions are preserved and skill
-installation is idempotent.
+installation is idempotent. Prompt templates are not copied into the wiki: the
+native skills contain the refresh/query prompts, and the refresh skill carries
+its maintenance guide under `references/`.
 
 ### Supported harness paths
 
 | Harness | Instruction file | Skill directory |
 | --- | --- | --- |
-| GitHub Copilot | `.github/copilot-instructions.md` | `.agents/skills/` |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.github/skills/` |
 | Codex | `AGENTS.md` | `.agents/skills/` |
 | Claude | `CLAUDE.md` | `.claude/skills/` |
 | Gemini | `GEMINI.md` | `.gemini/skills/` |
@@ -190,7 +192,8 @@ wiki_<project>/
 Use the folders as follows:
 
 - `index.md` is the starting point. Read it first for the wiki's scope,
-  navigation rules, and protected-folder guidance.
+  navigation rules, and protected-folder guidance. Initialization creates it
+  once; later edits are made directly and `wiki_wspace update` preserves them.
 - `architecture/` contains durable system context: configuration behavior,
   data flows, component boundaries, and cross-module contracts.
 - `decisions/` contains accepted architectural decisions and their tradeoffs.

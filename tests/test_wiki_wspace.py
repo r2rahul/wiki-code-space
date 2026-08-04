@@ -226,6 +226,7 @@ def test_init_cli_installs_selected_harness_in_target_project(
     ).exists()
     assert (skills_root / f"wiki-query-{project_name}" / "SKILL.md").exists()
     assert (project_root / f"wiki_{project_name}" / "index.md").exists()
+    assert not (project_root / f"wiki_{project_name}" / "templates").exists()
 
 
 def test_init_cli_is_idempotent_with_user_project_name(

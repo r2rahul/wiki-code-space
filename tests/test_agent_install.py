@@ -138,3 +138,24 @@ def test_install_is_idempotent_for_new_instruction_file(tmp_path: Path) -> None:
     assert first.changed_files
     assert second.changed_files == []
     assert instruction_text.startswith("<!-- wiki-wspace:coce:start -->")
+
+
+def test_copilot_install_uses_github_native_skill_directory(tmp_path: Path) -> None:
+    """Copilot project skills should stay alongside its GitHub instructions."""
+
+    config_path = write_config(tmp_path)
+    updater = WikiUpdater(repo_root=tmp_path, config_path=config_path)
+
+    result = install_agent_instructions(
+        repo_root=tmp_path,
+        project_name="code_space",
+        agent_name="copilot",
+        jinja_env=updater.jinja_env,
+    )
+
+    assert result.instruction_path == tmp_path / ".github/copilot-instructions.md"
+    assert all(
+        path.is_relative_to(tmp_path / ".github/skills")
+        for path in result.skill_paths
+    )
+    assert not (tmp_path / ".agents").exists()

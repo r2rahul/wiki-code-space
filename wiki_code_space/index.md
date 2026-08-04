@@ -10,6 +10,8 @@ Create `architecture/<topic>.md` only when there is durable system context,
 configuration behavior, data flow, or a cross-module contract worth preserving.
 Read relevant architecture notes before changing matching behavior.
 
+- [[architecture/install-and-index-ownership]]
+
 ## Decisions
 Create `decisions/adr-YYYYMMDD-<topic>.md` only for real architectural
 decisions with durable tradeoffs. Read relevant ADRs before changing decision

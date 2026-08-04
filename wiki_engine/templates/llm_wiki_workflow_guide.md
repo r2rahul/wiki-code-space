@@ -19,6 +19,9 @@ Use this guide when maintaining the wiki. Capture semantic context that helps a 
   `Config Parameter: volatility_penalty inside config.yaml`;
   `Business Context: higher volatility_penalty reduces false-positive alerts`.
 - Preserve existing front matter keys and naming conventions.
+- Treat `{{ wiki_root }}/index.md` as project-owned after initialization. Edit it
+  directly when navigation or top-level links change; do not create a shadow
+  `wiki_engine/templates/index.md.j2` in the project.
 - Never read, summarize, index, or update {{ wiki_root }}/stage/ unless the user names an exact stage file path.
 - Do not create placeholder notes. Create a wiki note only when it captures
   source-grounded project knowledge that will help future maintenance.

@@ -13,7 +13,7 @@ from wiki_engine.naming import normalize_project_name
 HARNESS_PATHS = {
     "copilot": {
         "project_instruction": Path(".github/copilot-instructions.md"),
-        "project_skills": Path(".agents/skills"),
+        "project_skills": Path(".github/skills"),
     },
     "codex": {
         "project_instruction": Path("AGENTS.md"),
