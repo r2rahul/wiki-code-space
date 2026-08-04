@@ -41,9 +41,9 @@ uv pip install dist/wiki_code_space-*.whl
 Download the pre-built `.whl` file from the [GitHub releases page](https://github.com/r2rahul/wiki-code-space/releases), then install:
 
 ```bash
-pip install wiki_code_space-0.5.0-py3-none-any.whl
+pip install wiki_code_space-0.5.1-py3-none-any.whl
 # or with uv:
-uv pip install wiki_code_space-0.5.0-py3-none-any.whl
+uv pip install wiki_code_space-0.5.1-py3-none-any.whl
 ```
 
 After installation, one command-line entry point is available:
