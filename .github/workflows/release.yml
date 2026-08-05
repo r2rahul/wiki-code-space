@@ -6,7 +6,30 @@ on:
       - 'v*' # Triggers when you push a tag starting with 'v' (e.g., v1.0.0)
 
 jobs:
+  changelog-check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify CHANGELOG.md has entry for this version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! grep -qE "^## \[${VERSION}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md does not contain an entry for version ${VERSION}."
+            echo "::error::Add a '## [${VERSION}] - YYYY-MM-DD' section before tagging."
+            exit 1
+          fi
+          echo "CHANGELOG.md entry found for version ${VERSION}."
+
   build:
+    needs: changelog-check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
