@@ -12,6 +12,31 @@ from typing import Any, Iterable
 from wiki_engine.graph_bridge import is_excluded_path
 
 LOGGER = logging.getLogger(__name__)
+QMD_MISSING_MESSAGE = "qmd is not installed; defaulting to Markdown index-based search"
+
+
+def _qmd_process_reports_missing(process: subprocess.CompletedProcess[str]) -> bool:
+    """Return whether a discovered qmd launcher reports a missing npm package."""
+
+    combined_output = f"{process.stderr}\n{process.stdout}".casefold()
+    launcher_missing_markers = (
+        "cannot find module",
+        "cannot find package",
+        "module_not_found",
+        "could not determine executable to run",
+    )
+    if any(marker in combined_output for marker in launcher_missing_markers):
+        return True
+
+    npm_error = "npm error" in combined_output or "npm err!" in combined_output
+    npm_missing_markers = (
+        "code e404",
+        "code enoent",
+        "404 not found",
+    )
+    return npm_error and any(
+        marker in combined_output for marker in npm_missing_markers
+    )
 
 
 def _qmd_collection_already_exists(process: subprocess.CompletedProcess[str]) -> bool:
@@ -165,7 +190,7 @@ def refresh_qmd_index(
 
     qmd_bin = shutil.which("qmd")
     if qmd_bin is None:
-        LOGGER.warning("qmd is missing; using markdown-based wiki search fallback")
+        LOGGER.info(QMD_MISSING_MESSAGE)
         return {
             "status": "fallback",
             "reason": "qmd CLI not installed",
@@ -185,6 +210,16 @@ def refresh_qmd_index(
     )
     collection_already_exists = _qmd_collection_already_exists(collection_process)
     if collection_process.returncode != 0 and not collection_already_exists:
+        if _qmd_process_reports_missing(collection_process):
+            LOGGER.info(QMD_MISSING_MESSAGE)
+            return {
+                "status": "fallback",
+                "reason": "qmd CLI not installed",
+                "collection": qmd_collection,
+                "return_code": collection_process.returncode,
+                "stdout": collection_process.stdout.strip(),
+                "stderr": collection_process.stderr.strip(),
+            }
         LOGGER.warning(
             "qmd collection add failed; using markdown-based wiki search fallback: %s",
             collection_process.stderr.strip() or collection_process.stdout.strip(),
@@ -385,7 +420,7 @@ def _search_wiki_with_qmd(
 
     qmd_bin = shutil.which("qmd")
     if qmd_bin is None:
-        LOGGER.warning("qmd is missing; using markdown-based wiki search fallback")
+        LOGGER.info(QMD_MISSING_MESSAGE)
         return {
             "status": "fallback",
             "backend": "qmd",

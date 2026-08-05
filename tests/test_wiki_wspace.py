@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -163,6 +164,43 @@ def test_init_cli_missing_qmd_prints_scale_guidance(
     assert exit_code == 0
     assert "qmd is not installed" in output
     assert "about 100 Markdown files or fewer" in output
+
+
+def test_init_cli_missing_npm_qmd_prints_only_fallback_notice(
+    monkeypatch,
+    capsys,
+    caplog,
+    tmp_path: Path,
+) -> None:
+    """A broken npm launcher must not dump its error during initialization."""
+
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: "/bin/qmd")
+    monkeypatch.setattr(
+        "wiki_engine.qmd_bridge.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=1,
+            stdout="",
+            stderr=(
+                "npm ERR! code MODULE_NOT_FOUND\n"
+                "Error: Cannot find module '@tobilu/qmd/dist/cli.js'"
+            ),
+        ),
+    )
+
+    with caplog.at_level(logging.INFO):
+        exit_code = main(["init", str(project_root)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "qmd is not installed" in captured.out
+    assert "default to index-based Markdown search" in captured.out
+    assert "MODULE_NOT_FOUND" not in captured.out
+    assert "MODULE_NOT_FOUND" not in captured.err
+    assert "MODULE_NOT_FOUND" not in caplog.text
+    assert not any(record.levelno >= logging.WARNING for record in caplog.records)
 
 
 def test_init_cli_defaults_to_project_gemini(

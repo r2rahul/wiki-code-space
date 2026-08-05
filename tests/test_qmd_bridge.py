@@ -119,15 +119,15 @@ def test_search_wiki_uses_qmd_success_path(monkeypatch: pytest.MonkeyPatch) -> N
     assert result["results"] == [{"path": "index.md"}]
 
 
-def test_refresh_qmd_index_missing_falls_back_with_warning(
+def test_refresh_qmd_index_missing_falls_back_with_info(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
     tmp_path: Path,
 ) -> None:
-    """Missing qmd should report fallback and warn operators."""
+    """Missing qmd should report fallback without emitting a warning."""
 
     monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: None)
-    with caplog.at_level(logging.WARNING):
+    with caplog.at_level(logging.INFO):
         result = refresh_qmd_index(
             wiki_root=tmp_path,
             qmd_collection="wiki_code_space",
@@ -136,7 +136,45 @@ def test_refresh_qmd_index_missing_falls_back_with_warning(
 
     assert result["status"] == "fallback"
     assert result["reason"] == "qmd CLI not installed"
-    assert "qmd is missing" in caplog.text
+    assert "qmd is not installed; defaulting to Markdown index-based search" in (
+        caplog.text
+    )
+    assert not any(record.levelno >= logging.WARNING for record in caplog.records)
+
+
+def test_refresh_qmd_index_missing_npm_package_hides_error_log(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+) -> None:
+    """A stale npm qmd launcher should produce only the informational fallback."""
+
+    npm_error = (
+        "npm ERR! code MODULE_NOT_FOUND\n"
+        "Error: Cannot find module '@tobilu/qmd/dist/cli.js'"
+    )
+    monkeypatch.setattr("wiki_engine.qmd_bridge.shutil.which", lambda _: "/bin/qmd")
+    monkeypatch.setattr(
+        "wiki_engine.qmd_bridge.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=1,
+            stdout="",
+            stderr=npm_error,
+        ),
+    )
+
+    with caplog.at_level(logging.INFO):
+        result = refresh_qmd_index(
+            wiki_root=tmp_path,
+            qmd_collection="wiki_code_space",
+            exclude_paths=["stage/**"],
+        )
+
+    assert result["status"] == "fallback"
+    assert result["reason"] == "qmd CLI not installed"
+    assert "defaulting to Markdown index-based search" in caplog.text
+    assert "MODULE_NOT_FOUND" not in caplog.text
+    assert not any(record.levelno >= logging.WARNING for record in caplog.records)
 
 
 def test_refresh_qmd_index_failure_falls_back_with_warning(
