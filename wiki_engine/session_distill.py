@@ -8,6 +8,11 @@ from pathlib import Path
 import re
 from typing import Iterable
 
+from wiki_engine.okf_frontmatter import (
+    ACTOR_WIKI_WSPACE_AGENT,
+    render_concept_frontmatter,
+)
+
 
 CHECKBOX_PATTERN = re.compile(
     r"^- \[ \] (Applied to permanent note\(s\)|Logged in log\.md)$"
@@ -71,28 +76,17 @@ def append_snippet(target_path: Path, snippet: str, current_date: date) -> None:
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
     if not target_path.exists():
-        note_type = {
-            "architecture": "architecture",
-            "qa": "qa",
-            "decisions": "decision",
-            "glossary": "glossary",
-        }.get(target_path.parent.name, "session")
-        note_slug = target_path.stem.replace("_", "-")
-        note_id = f"{target_path.parent.name}-{note_slug}"
         note_title = target_path.stem.replace("_", " ").replace("-", " ").title()
+        frontmatter = render_concept_frontmatter(
+            note_path=target_path,
+            title=note_title,
+            description=f"Distilled notes for {note_title}.",
+            tags=[target_path.parent.name, "distilled"],
+            generated_at=current_date,
+            generated_by=ACTOR_WIKI_WSPACE_AGENT,
+        )
         target_path.write_text(
-            (
-                "---\n"
-                f"id: {note_id}\n"
-                f"title: {note_title}\n"
-                f"type: {note_type}\n"
-                f"tags: [{target_path.parent.name}, distilled]\n"
-                f"last_updated: {current_date.isoformat()}\n"
-                "status: active\n"
-                "source: agent\n"
-                "---\n\n"
-                "# Notes\n"
-            ),
+            f"{frontmatter}\n# Notes\n",
             encoding="utf-8",
         )
 

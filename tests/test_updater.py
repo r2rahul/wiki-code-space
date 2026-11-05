@@ -138,11 +138,11 @@ def test_update_preserves_initialized_index_and_ignores_shadow_template(
     index_path = repo_root / "wiki_coce" / "index.md"
     customized_index = (
         "---\n"
-        "id: project-index\n"
+        'okf_version: "0.2"\n'
         "---\n"
         "# Custom index\n\n"
-        "## Glossary\n"
-        "- [[glossary/risk-budget]]\n"
+        "# Glossary\n"
+        "* [Risk Budget](./glossary/risk-budget.md) - Project risk budget term\n"
     )
     index_path.write_text(customized_index, encoding="utf-8")
 
@@ -166,5 +166,6 @@ def test_update_preserves_initialized_index_and_ignores_shadow_template(
     )
 
     recreated_index = index_path.read_text(encoding="utf-8")
-    assert recreated_index.startswith("# wiki_coce\n")
+    assert recreated_index.startswith("---\nokf_version: \"0.2\"\n---\n")
+    assert "# wiki_coce\n" in recreated_index
     assert "Shadow template must be ignored" not in recreated_index

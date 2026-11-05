@@ -1,0 +1,53 @@
+# OKF manifest for the code_space wiki bundle.
+# Used by okflint; does not affect qmd indexing.
+
+okf_version: "0.2"
+
+base:
+  name: "wiki_code_space"
+  roots:
+    - path: "."
+      exclude_patterns:
+        - "stage/**"
+        - ".qmd/**"
+        - ".okflint/**"
+  reserved_files:
+    index: "index.md"
+    log: "log.md"
+  link_resolution:
+    scope: base
+    external_refs: []
+
+profile:
+  date_fields: []
+  types:
+    architecture:
+      required: [type, title, description, status, generated]
+      optional: [tags, verified, sources, stale_after, resource]
+      status_values: [draft, stable, deprecated]
+    decision:
+      aliases: [adr]
+      required: [type, title, description, status, generated]
+      optional: [tags, verified, sources, stale_after, resource]
+      status_values: [draft, stable, deprecated]
+    qa:
+      required: [type, title, description, status, generated]
+      optional: [tags, verified, sources, stale_after, resource]
+      status_values: [draft, stable, deprecated]
+    session:
+      required: [type, title, description, status, generated]
+      optional: [tags, verified, sources, stale_after, resource]
+      status_values: [draft, stable, deprecated]
+    glossary:
+      required: [type, title, description, status, generated]
+      optional: [tags, verified, sources, stale_after, resource]
+      status_values: [draft, stable, deprecated]
+
+hygiene:
+  broken_links: warn
+  split_candidates: off
+  reserved_files: warn
+  unknown_fields: off
+  okf_v02_shapes: warn
+  legacy_forms: warn
+  stale_content: warn

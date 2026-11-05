@@ -18,38 +18,46 @@ Use this guide when maintaining the wiki. Capture semantic context that helps a 
   `Target: src/models/forecasting.py -> run_forecast()`;
   `Config Parameter: volatility_penalty inside config.yaml`;
   `Business Context: higher volatility_penalty reduces false-positive alerts`.
-- Preserve existing front matter keys and naming conventions.
+- Preserve OKF front matter keys and naming conventions; do not invent fields.
 - Treat `{{ wiki_root }}/index.md` as project-owned after initialization. Edit it
-  directly when navigation or top-level links change; do not create a shadow
-  `wiki_engine/templates/index.md.j2` in the project.
+  directly when progressive-disclosure listings change; do not create a shadow
+  `wiki_engine/templates/index.md.j2` in the project. Root index MAY carry only
+  `okf_version` front matter; subdirectory `index.md` files have no front matter.
 - Never read, summarize, index, or update {{ wiki_root }}/stage/ unless the user names an exact stage file path.
 - Do not create placeholder notes. Create a wiki note only when it captures
   source-grounded project knowledge that will help future maintenance.
 
-## Metadata Contract
+## Metadata Contract (OKF v0.2)
 
-Every wiki note created under `architecture/`, `decisions/`, `qa/`,
-`sessions/`, or `glossary/` must start with YAML front matter:
+Every concept note under `architecture/`, `decisions/`, `qa/`,
+`sessions/`, or `glossary/` must start with YAML front matter. Concept ID is
+the bundle-relative path without `.md` (for example `architecture/config_params`).
 
 ```yaml
 ---
-id: <folder>-<stable-slug>
-title: <Human Title>
 type: <architecture|decision|qa|session|glossary>
+title: <Human Title>
+description: <One-sentence summary for index listings>
 tags: [<folder>, <specific-topic>]
-last_updated: YYYY-MM-DD
-status: active
-source: agent
+status: stable
+generated: { by: wiki_wspace/agent, at: YYYY-MM-DDTHH:MM:SSZ }
 ---
 ```
 
 Rules:
-- Use lowercase kebab-case for `id` and filenames.
-- Keep `id` stable after creation; update `last_updated` when semantics change.
-- Use `source: agent` for agent-authored notes and `source: human` only when
-  the user directly provides the note content.
-- Include a `## Related` section with wiki links when another note is directly
+- `type` is required. Use lowercase kebab-case filenames; keep paths stable.
+- `status` is `draft`, `stable`, or `deprecated` (default `stable`).
+- Update `generated.at` when concept semantics change. Use actor
+  `wiki_wspace/agent` for agent-authored notes, `human:<id>` when the user
+  provides the note content, and `process:<id>` for automation.
+- Optional OKF fields (`verified`, `sources`, `stale_after`, `resource`) may be
+  added when provenance or trust signals are known; do not fabricate them.
+- Cross-link with standard markdown links (prefer bundle-absolute paths such as
+  `[Technical QA](/qa/technical.md)`). Do not use `[[wikilinks]]`.
+- Include a `## Related` section with those links when another note is directly
   relevant. Omit it when there is no grounded relationship.
+- Keep directory `index.md` files as progressive-disclosure lists:
+  `* [Title](./note.md) - description from frontmatter`.
 
 ## architecture/
 
@@ -148,7 +156,8 @@ Omit:
 
 ## log.md
 
-The update command owns this append-only file. Do not hand-edit it unless repairing a malformed entry.
+The update command owns this OKF log: ``## YYYY-MM-DD`` headings, newest first.
+Do not hand-edit it unless repairing a malformed entry.
 
 ## qmd.yml
 

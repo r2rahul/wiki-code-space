@@ -9,8 +9,9 @@ description: Refresh the {{ project_name }} semantic wiki after code, configurat
 2. Read `references/wiki-workflow.md` before editing wiki content.
 3. Preserve the hard gate on `{{ wiki_root }}/stage/`; do not browse it unless the user names an exact path.
 4. Add or update only brief, source-grounded semantic notes relevant to the change.
-5. Update `{{ wiki_root }}/index.md` directly when its navigation, front matter,
-   or top-level links need to change. Never create a project-local
+5. Update `{{ wiki_root }}/index.md` and folder `index.md` listings directly when
+   progressive-disclosure navigation needs to change. Root index MAY keep only
+   `okf_version` front matter. Never create a project-local
    `wiki_engine/templates/index.md.j2`; `wiki_wspace update` preserves the
    initialized index.
 6. Run:

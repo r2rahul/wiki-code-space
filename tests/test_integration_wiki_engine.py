@@ -11,9 +11,7 @@ import yaml
 from wiki_engine.updater import WikiUpdater
 
 
-TIMESTAMP_HEADER_PATTERN = re.compile(
-    r"^## \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", re.MULTILINE
-)
+DATE_HEADER_PATTERN = re.compile(r"^## \d{4}-\d{2}-\d{2}$", re.MULTILINE)
 
 
 def _extract_front_matter(markdown_text: str) -> dict[str, object]:
@@ -64,11 +62,12 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     assert (wiki_root / "stage" / ".noindex").exists()
     assert (wiki_root / "stage" / ".qmdexclude").exists()
 
-    # Assert: Karpathy-style index guard rails are present.
+    # Assert: OKF root index and Karpathy-style guard rails are present.
     index_text = (wiki_root / "index.md").read_text(encoding="utf-8")
-    assert "## First Files To Load" in index_text
-    assert "## Never Auto-Read" in index_text
-    assert "- stage/" in index_text
+    assert index_text.startswith("---\nokf_version: \"0.2\"\n---\n")
+    assert "# First Files To Load" in index_text
+    assert "# Never Auto-Read" in index_text
+    assert "`stage/`" in index_text
 
     # Assert: qmd ignore policy excludes stage and utility files.
     qmd_config = yaml.safe_load((wiki_root / "qmd.yml").read_text(encoding="utf-8"))
@@ -88,13 +87,12 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     session_path.write_text(
         (
             "---\n"
-            "id: session-2026-07-05-config-routing\n"
-            "title: Session Config Routing\n"
             "type: session\n"
+            "title: Session Config Routing\n"
+            "description: Distillation fixture for config routing.\n"
             "tags: [session, distilled]\n"
-            "last_updated: 2026-07-05\n"
-            "status: active\n"
-            "source: agent\n"
+            "status: stable\n"
+            "generated: { by: wiki_wspace/agent, at: 2026-07-05T00:00:00Z }\n"
             "---\n\n"
             "# Reusable Knowledge\n"
             "- Config Parameter: volatility_penalty in config/config.yaml; "
@@ -108,32 +106,35 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
 
     result = updater.update(project_override="code_space")
 
-    # Assert: front matter keys required by Obsidian contract.
+    # Assert: OKF v0.2 front matter contract for distilled concept notes.
     architecture_text = (wiki_root / "architecture" / "config_params.md").read_text(
         encoding="utf-8"
     )
     architecture_front_matter = _extract_front_matter(architecture_text)
     required_keys = {
-        "id",
-        "title",
         "type",
+        "title",
+        "description",
         "tags",
-        "last_updated",
         "status",
-        "source",
+        "generated",
     }
     assert required_keys.issubset(set(architecture_front_matter.keys()))
     assert architecture_front_matter["type"] == "architecture"
-    assert architecture_front_matter["source"] == "agent"
+    assert architecture_front_matter["status"] == "stable"
+    generated = architecture_front_matter["generated"]
+    assert isinstance(generated, dict)
+    assert generated["by"] == "wiki_wspace/agent"
+    assert "at" in generated
 
     # Assert: graph bridge has lexical code reference links.
     assert "Target: src/models/forecasting.py -> run_forecast()" in architecture_text
     assert result.graph_result["bridge_edge_count"] >= 1
 
-    # Assert: append-only log format has timestamp header and update fields.
+    # Assert: OKF log uses date headings and newest-first update bullets.
     log_text = (wiki_root / "log.md").read_text(encoding="utf-8")
-    assert TIMESTAMP_HEADER_PATTERN.search(log_text)
-    assert "- update_type:" in log_text
-    assert "- changed_files:" in log_text
-    assert "- reason:" in log_text
-    assert "- source: agent" in log_text
+    assert DATE_HEADER_PATTERN.search(log_text)
+    assert "* **Update**:" in log_text
+    assert "by agent" in log_text
+    assert "changed_files:" in log_text
+    assert not any("T" in heading for heading in DATE_HEADER_PATTERN.findall(log_text))

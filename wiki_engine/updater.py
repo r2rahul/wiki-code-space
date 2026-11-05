@@ -12,6 +12,7 @@ import yaml
 
 from wiki_engine.graph_bridge import update_graph_bridge
 from wiki_engine.naming import normalize_project_name
+from wiki_engine.okf_log import format_update_bullet, insert_okf_log_entry
 from wiki_engine.qmd_bridge import refresh_qmd_index, search_wiki
 from wiki_engine.session_distill import distill_session_note, discover_session_notes
 
@@ -374,14 +375,14 @@ class WikiUpdater:
         changed_files: list[str],
         update_type: str,
     ) -> str:
-        """Append one concise entry to append-only log.md.
+        """Insert one OKF log entry under a newest-first date heading.
 
-        Appends a structured update log entry (timestamp, type, changed files, reason).
-        Maintains an immutable update audit trail.
+        Writes a structured update bullet under ``## YYYY-MM-DD``. Same-day
+        entries are prepended so the newest bullet appears first within the day.
 
         Args:
             wiki_root (Path): Absolute path to wiki root directory.
-            now (datetime): Current datetime for log entry timestamp.
+            now (datetime): Current datetime used for the OKF date heading.
             changed_files (list[str]): Files modified in this update cycle.
             update_type (str): Type of update ("session_distill" or "code_sync").
 
@@ -390,20 +391,22 @@ class WikiUpdater:
         """
 
         log_path = wiki_root / "log.md"
-        timestamp_text = now.strftime(self.config.timestamp_format)
-        changed_file_list = ", ".join(changed_files)
         reason_text = "Coherent wiki+graph+qmd update run"
-
-        entry = (
-            f"\n## {timestamp_text}\n"
-            f"- update_type: {update_type}\n"
-            f"- changed_files: [{changed_file_list}]\n"
-            f"- reason: {reason_text}\n"
-            "- source: agent\n"
+        bullet = format_update_bullet(
+            update_type=update_type,
+            changed_files=changed_files,
+            reason=reason_text,
+            source="agent",
         )
-
-        with log_path.open("a", encoding="utf-8") as file_pointer:
-            file_pointer.write(entry)
+        existing_text = (
+            log_path.read_text(encoding="utf-8") if log_path.exists() else ""
+        )
+        updated_text = insert_okf_log_entry(
+            log_text=existing_text,
+            entry_date=now.date(),
+            bullet=bullet,
+        )
+        log_path.write_text(updated_text, encoding="utf-8")
 
         return log_path.relative_to(self.repo_root).as_posix()
 

@@ -175,8 +175,9 @@ project name is produced by the naming rule described above.
 
 ```text
 wiki_<project>/
-├── index.md
+├── index.md                 # OKF bundle root (okf_version only)
 ├── architecture/
+│   └── index.md             # progressive-disclosure listing
 ├── decisions/
 ├── qa/
 ├── sessions/
@@ -189,11 +190,17 @@ wiki_<project>/
 └── .qmd/
 ```
 
+Concept notes follow [Open Knowledge Format (OKF) v0.2](https://github.com/GoogleCloudPlatform/open-knowledge-format):
+required `type`, recommended `title`/`description`/`tags`/`status`/`generated`,
+and markdown cross-links. Concept ID is the path without `.md`.
+
 Use the folders as follows:
 
-- `index.md` is the starting point. Read it first for the wiki's scope,
-  navigation rules, and protected-folder guidance. Initialization creates it
-  once; later edits are made directly and `wiki_wspace update` preserves them.
+- `index.md` is the starting point. Read it first for progressive-disclosure
+  listings, navigation rules, and protected-folder guidance. Root index MAY
+  declare `okf_version: "0.2"`; folder `index.md` files have no front matter.
+  Initialization creates the root index once; later edits are made directly and
+  `wiki_wspace update` preserves them.
 - `architecture/` contains durable system context: configuration behavior,
   data flows, component boundaries, and cross-module contracts.
 - `decisions/` contains accepted architectural decisions and their tradeoffs.
@@ -208,7 +215,8 @@ Use the folders as follows:
 - `stage/` contains temporary plans and specifications. It is excluded from
   search and indexing. Do not browse it unless an exact stage path is explicitly
   requested.
-- `log.md` is the append-only update history maintained by `wiki_wspace`.
+- `log.md` is the OKF update history maintained by `wiki_wspace`
+  (`## YYYY-MM-DD` headings, newest first).
 - `qmd.yml` and `.qmd/` contain qmd collection configuration and local index
   state. They are maintained by the update workflow and normally should not be
   edited manually.

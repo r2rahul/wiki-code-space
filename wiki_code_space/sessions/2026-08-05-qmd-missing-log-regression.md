@@ -1,11 +1,10 @@
 ---
-id: session-qmd-missing-log-regression
-title: Missing qmd Log Regression
 type: session
+title: Missing qmd Log Regression
+description: Stale npm qmd launcher must fall back to Markdown search without dumping npm package errors.
 tags: [session, qmd, installation, logging]
-last_updated: 2026-08-05
-status: active
-source: agent
+status: stable
+generated: { by: wiki_wspace/agent, at: 2026-08-05T00:00:00Z }
 ---
 
 # Problem
@@ -36,8 +35,8 @@ expected missing-tool path.
 
 # Related
 
-- [[../architecture/install-and-index-ownership]]
-- [[../qa/technical]]
+- [Install and Index Ownership](/architecture/install-and-index-ownership.md)
+- [Technical QA](/qa/technical.md)
 
 # Distillation Status
 

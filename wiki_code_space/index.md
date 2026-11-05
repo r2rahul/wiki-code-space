@@ -1,47 +1,46 @@
+---
+okf_version: "0.2"
+---
+
 # wiki_code_space
 
 Project wiki for code_space that captures semantic intent, rationale,
 and business context. It can complement Graphifyy structural topology when a
 graph exists, but it is maintained independently.
-This index is optimized for coding-agent navigation and fast retrieval.
+This index supports progressive disclosure for coding-agent navigation.
 
-## Architecture
-Create `architecture/<topic>.md` only when there is durable system context,
-configuration behavior, data flow, or a cross-module contract worth preserving.
-Read relevant architecture notes before changing matching behavior.
+# Architecture
 
-- [[architecture/install-and-index-ownership]]
+* [Architecture](./architecture/) - Durable system context, configuration behavior, data flow, and cross-module contracts
+* [Install and Index Ownership](./architecture/install-and-index-ownership.md) - Harness installation paths and project-owned index rules
 
-## Decisions
-Create `decisions/adr-YYYYMMDD-<topic>.md` only for real architectural
-decisions with durable tradeoffs. Read relevant ADRs before changing decision
-logic.
+# Decisions
 
-## Business QA
-Create `qa/business.md` or focused `qa/<topic>.md` only when there are
-stakeholder-visible outcomes, alert-quality checks, operational risks, or
-decision-impact checks to preserve.
+* [Decisions](./decisions/) - Architecture decision records with durable tradeoffs
 
-## Technical QA
-Create `qa/technical.md` or focused `qa/<topic>.md` only when there are
-regression risks, invariants, interfaces, or failure modes to preserve.
+# QA
 
-## Sessions
-Create `sessions/YYYY-MM-DD-<topic-slug>.md` only when a failed approach led to
-a corrected implementation or a reusable constraint was discovered.
+* [QA](./qa/) - Business and technical checks for expected behavior
+* [Technical QA](./qa/technical.md) - Regression risks, invariants, interfaces, and failure modes
 
-## Agent Access
-Run `wiki_wspace init <project-path> --llm <harness>` to initialize the wiki and
-register project-level refresh and query skills in one operation. Supported
-harnesses are Copilot, Codex, Claude, and Gemini; Gemini is the default.
+# Sessions
 
-## Glossary
-Create `glossary/<term-slug>.md` only for project-specific terms,
-abbreviations, or overloaded meanings that reduce ambiguity.
+* [Sessions](./sessions/) - Failed approaches that produced reusable constraints
+* [Missing qmd Log Regression](./sessions/2026-08-05-qmd-missing-log-regression.md) - Stale npm qmd launcher fallback logging
 
-## First Files To Load
-- index.md
-- folder-specific notes only when the user request or changed module makes them relevant
+# Glossary
 
-## Never Auto-Read
-- stage/
+* [Glossary](./glossary/) - Project-specific terms and overloaded meanings
+
+# Agent Access
+
+* Run `wiki_wspace init <project-path> --llm <harness>` to initialize the wiki and register refresh/query skills. Supported harnesses: Copilot, Codex, Claude, Gemini (default).
+
+# First Files To Load
+
+* [index.md](./index.md) - Bundle root; load first for orientation
+* Folder-specific notes only when the user request or changed module makes them relevant
+
+# Never Auto-Read
+
+* `stage/` - Scratch area excluded from indexing and default agent browse
