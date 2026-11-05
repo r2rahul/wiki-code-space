@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Align `log.md` with OKF date headings (`## YYYY-MM-DD`, newest first)
 - Add `wiki_code_space/okf-base.yaml` for okflint validation
 
+### Fixed
+
+- Make session distillation idempotent so reusable-knowledge bullets are not
+  re-appended to permanent notes on every update
+
 ## [0.5.2] - 2026-08-05
 
 ### Fixed

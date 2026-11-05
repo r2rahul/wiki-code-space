@@ -134,6 +134,10 @@ Use this section order:
 - `# Related`
 - `# Distillation Status`
 
+`# Reusable Knowledge` must use markdown bullets (`- ...`). Distillation routes
+each bullet once into a permanent note and then marks Distillation Status
+complete. Later `wiki_wspace update` runs must not re-append the same bullet.
+
 Omit:
 - Narration, praise, status chatter, and routine successful implementation notes.
 

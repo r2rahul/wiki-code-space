@@ -107,9 +107,8 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     result = updater.update(project_override="code_space")
 
     # Assert: OKF v0.2 front matter contract for distilled concept notes.
-    architecture_text = (wiki_root / "architecture" / "config_params.md").read_text(
-        encoding="utf-8"
-    )
+    architecture_path = wiki_root / "architecture" / "config_params.md"
+    architecture_text = architecture_path.read_text(encoding="utf-8")
     architecture_front_matter = _extract_front_matter(architecture_text)
     required_keys = {
         "type",
@@ -130,6 +129,13 @@ def test_update_contracts_end_to_end(tmp_path: Path) -> None:
     # Assert: graph bridge has lexical code reference links.
     assert "Target: src/models/forecasting.py -> run_forecast()" in architecture_text
     assert result.graph_result["bridge_edge_count"] >= 1
+
+    # Assert: a later update does not re-append the same distilled snippet.
+    first_architecture_text = architecture_text
+    updater.update(project_override="code_space")
+    second_architecture_text = architecture_path.read_text(encoding="utf-8")
+    assert second_architecture_text == first_architecture_text
+    assert second_architecture_text.count("volatility_penalty") == 1
 
     # Assert: OKF log uses date headings and newest-first update bullets.
     log_text = (wiki_root / "log.md").read_text(encoding="utf-8")

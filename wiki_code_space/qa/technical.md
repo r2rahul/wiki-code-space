@@ -19,11 +19,16 @@ generated: { by: wiki_wspace/agent, at: 2026-08-04T00:00:00Z }
   while still installing refresh/query skills and the workflow reference?
 - Do concept notes carry OKF-required `type` plus recommended
   `title`/`description`/`status`/`generated` fields?
+- Does a second `wiki_wspace update` avoid re-appending the same session
+  reusable-knowledge bullet into `qa/technical.md` or other permanent notes?
+- Does the same knowledge body with only a new date stamp stay as one line in
+  permanent notes (no `- YYYY-MM-DD:` duplicates)?
 
 ## Evidence
 
 Regression coverage lives in `tests/test_agent_install.py`,
-`tests/test_updater.py`, and `tests/test_wiki_wspace.py`.
+`tests/test_updater.py`, `tests/test_session_distill.py`, and
+`tests/test_wiki_wspace.py`.
 
 ## Related
 
