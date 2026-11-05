@@ -79,6 +79,7 @@ wiki_wspace init /path/to/existing-project --llm copilot
 wiki_wspace init /path/to/existing-project --llm codex
 wiki_wspace init /path/to/existing-project --llm claude
 wiki_wspace init /path/to/existing-project --llm gemini
+wiki_wspace init /path/to/existing-project --llm cursor
 ```
 
 Initialization creates the configuration and wiki scaffold, installs two
@@ -96,6 +97,7 @@ its maintenance guide under `references/`.
 | Codex | `AGENTS.md` | `.agents/skills/` |
 | Claude | `CLAUDE.md` | `.claude/skills/` |
 | Gemini | `GEMINI.md` | `.gemini/skills/` |
+| Cursor | `.cursor/rules/wiki-wspace.mdc` | `.cursor/skills/` |
 
 ### Generated commands
 

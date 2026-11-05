@@ -12,7 +12,9 @@ generated: { by: wiki_wspace/agent, at: 2026-08-04T00:00:00Z }
 `wiki_wspace init` installs harness-specific instructions and two native Agent
 Skills. Copilot keeps both kinds of project customization under `.github/`:
 the instruction block is in `.github/copilot-instructions.md` and skills are in
-`.github/skills/<skill-name>/`. Other harnesses retain their native paths.
+`.github/skills/<skill-name>/`. Cursor installs an always-apply rule at
+`.cursor/rules/wiki-wspace.mdc` and skills under `.cursor/skills/<skill-name>/`.
+Other harnesses retain their native paths.
 
 The packaged `index.md.j2` is initialization input, not a project maintenance
 surface. Initialization creates `wiki_<project>/index.md` when it is missing.

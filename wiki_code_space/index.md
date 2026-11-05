@@ -34,7 +34,7 @@ This index supports progressive disclosure for coding-agent navigation.
 
 # Agent Access
 
-* Run `wiki_wspace init <project-path> --llm <harness>` to initialize the wiki and register refresh/query skills. Supported harnesses: Copilot, Codex, Claude, Gemini (default).
+* Run `wiki_wspace init <project-path> --llm <harness>` to initialize the wiki and register refresh/query skills. Supported harnesses: Copilot, Codex, Claude, Gemini (default), Cursor.
 
 # First Files To Load
 

@@ -159,3 +159,49 @@ def test_copilot_install_uses_github_native_skill_directory(tmp_path: Path) -> N
         for path in result.skill_paths
     )
     assert not (tmp_path / ".agents").exists()
+
+
+def test_cursor_install_uses_cursor_rules_and_skills(tmp_path: Path) -> None:
+    """Cursor should install an always-apply rule plus `.cursor/skills/` Agent Skills."""
+
+    config_path = write_config(tmp_path)
+    updater = WikiUpdater(repo_root=tmp_path, config_path=config_path)
+    other_rule = tmp_path / ".cursor" / "rules" / "team-style.mdc"
+    other_rule.parent.mkdir(parents=True)
+    other_rule.write_text(
+        "---\ndescription: team style\nalwaysApply: true\n---\n\n# Team\n",
+        encoding="utf-8",
+    )
+
+    first = install_agent_instructions(
+        repo_root=tmp_path,
+        project_name="code_space",
+        agent_name="cursor",
+        jinja_env=updater.jinja_env,
+    )
+    second = install_agent_instructions(
+        repo_root=tmp_path,
+        project_name="code_space",
+        agent_name="cursor",
+        jinja_env=updater.jinja_env,
+    )
+
+    instruction_path = tmp_path / ".cursor/rules/wiki-wspace.mdc"
+    instruction_text = instruction_path.read_text(encoding="utf-8")
+    assert first.instruction_path == instruction_path
+    assert instruction_text.startswith("---\n")
+    assert "alwaysApply: true" in instruction_text
+    assert "/wiki-ref-coce" in instruction_text
+    assert "/wiki-query-coce" in instruction_text
+    assert all(
+        path.is_relative_to(tmp_path / ".cursor/skills")
+        for path in first.skill_paths
+    )
+    assert (
+        tmp_path / ".cursor/skills/wiki-ref-coce/references/wiki-workflow.md"
+    ).exists()
+    assert other_rule.read_text(encoding="utf-8").startswith("---\ndescription: team style")
+    assert first.changed_files
+    assert second.changed_files == []
+    assert not (tmp_path / ".agents").exists()
+    assert not (tmp_path / "GEMINI.md").exists()

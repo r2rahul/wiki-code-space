@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Align `log.md` with OKF date headings (`## YYYY-MM-DD`, newest first)
 - Add `wiki_code_space/okf-base.yaml` for okflint validation
 
+### Added
+
+- Add Cursor harness install support (`--llm cursor`) writing
+  `.cursor/rules/wiki-wspace.mdc` and `.cursor/skills/`
+
 ### Fixed
 
 - Make session distillation idempotent so reusable-knowledge bullets are not

@@ -27,6 +27,10 @@ HARNESS_PATHS = {
         "project_instruction": Path("GEMINI.md"),
         "project_skills": Path(".gemini/skills"),
     },
+    "cursor": {
+        "project_instruction": Path(".cursor/rules/wiki-wspace.mdc"),
+        "project_skills": Path(".cursor/skills"),
+    },
 }
 
 
@@ -128,16 +132,6 @@ def install_agent_instructions(
         wiki_root=wiki_root,
     )
 
-    marker_slug = project_command_suffix(project_name)
-    begin_marker = f"<!-- wiki-wspace:{marker_slug}:start -->"
-    end_marker = f"<!-- wiki-wspace:{marker_slug}:end -->"
-    instruction_block = jinja_env.get_template("agent_wiki_install.md.j2").render(
-        **template_context,
-        agent_name=agent_name,
-        begin_marker=begin_marker,
-        end_marker=end_marker,
-    )
-
     changed_files: list[str] = []
     generated_files = {
         refresh_skill_path / "SKILL.md": f"{refresh_content.rstrip()}\n",
@@ -148,19 +142,37 @@ def install_agent_instructions(
         if _write_if_changed(file_path, content):
             changed_files.append(str(file_path))
 
-    existing_content = (
-        instruction_path.read_text(encoding="utf-8")
-        if instruction_path.exists()
-        else ""
-    )
-    merged_content = _merge_marked_block(
-        existing_content=existing_content,
-        block_content=instruction_block,
-        begin_marker=begin_marker,
-        end_marker=end_marker,
-    )
-    if _write_if_changed(instruction_path, merged_content):
-        changed_files.append(str(instruction_path))
+    if agent_name == "cursor":
+        # Cursor uses a package-managed always-apply rule file; rewrite it whole
+        # so frontmatter stays valid and other `.cursor/rules/*.mdc` files remain untouched.
+        cursor_instruction = jinja_env.get_template(
+            "agent_wiki_install_cursor.md.j2"
+        ).render(**template_context)
+        if _write_if_changed(instruction_path, f"{cursor_instruction.rstrip()}\n"):
+            changed_files.append(str(instruction_path))
+    else:
+        marker_slug = project_command_suffix(project_name)
+        begin_marker = f"<!-- wiki-wspace:{marker_slug}:start -->"
+        end_marker = f"<!-- wiki-wspace:{marker_slug}:end -->"
+        instruction_block = jinja_env.get_template("agent_wiki_install.md.j2").render(
+            **template_context,
+            agent_name=agent_name,
+            begin_marker=begin_marker,
+            end_marker=end_marker,
+        )
+        existing_content = (
+            instruction_path.read_text(encoding="utf-8")
+            if instruction_path.exists()
+            else ""
+        )
+        merged_content = _merge_marked_block(
+            existing_content=existing_content,
+            block_content=instruction_block,
+            begin_marker=begin_marker,
+            end_marker=end_marker,
+        )
+        if _write_if_changed(instruction_path, merged_content):
+            changed_files.append(str(instruction_path))
 
     return AgentInstallResult(
         agent_name=agent_name,

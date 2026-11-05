@@ -11,6 +11,8 @@ generated: { by: wiki_wspace/agent, at: 2026-08-04T00:00:00Z }
 
 - Does Copilot initialization write its instruction file and both skills below
   `.github/`, without creating `.agents/`?
+- Does Cursor initialization write `.cursor/rules/wiki-wspace.mdc` plus both
+  skills under `.cursor/skills/`, without touching unrelated Cursor rules?
 - Does a second update preserve a directly customized `index.md` byte for byte,
   including optional root `okf_version` front matter and glossary links?
 - If the index is missing, does the updater recreate it from the installed

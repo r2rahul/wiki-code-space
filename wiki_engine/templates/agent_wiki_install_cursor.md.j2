@@ -1,0 +1,13 @@
+---
+description: wiki_wspace semantic wiki skills for this project
+alwaysApply: true
+---
+
+# wiki_wspace skills
+
+This project keeps rationale, architecture, decisions, QA constraints, glossary terms, and reusable lessons in `{{ wiki_root }}/`.
+
+- Use `{{ query_command }}` before broad exploration when a task depends on why the system behaves as it does, business context, configuration semantics, prior decisions, constraints, or known failure modes.
+- Use `{{ refresh_command }}` after code, configuration, tests, or documentation change project semantics.
+- Both commands use the installed Agent Skills under `.cursor/skills/`. The query skill calls `wiki_wspace search`, which uses qmd when available and otherwise performs index-based Markdown search.
+- Never inspect `{{ wiki_root }}/stage/` unless the user names an exact file path there.

@@ -82,7 +82,7 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument(
         "--llm",
         dest="agent_name",
-        choices=("copilot", "codex", "claude", "gemini"),
+        choices=("copilot", "codex", "claude", "gemini", "cursor"),
         default="gemini",
         help="Agent harness whose project skills should be installed (default: gemini)",
     )
